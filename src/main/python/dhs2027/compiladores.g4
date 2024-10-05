@@ -107,5 +107,7 @@ cond : opal
 iter : opal
     |
     ;
-//iif : ;
+iif : IF PA cond PC instruccion
+    | IF PA PC instruccion
+    ;
 bloque : LLA instrucciones LLC; 
