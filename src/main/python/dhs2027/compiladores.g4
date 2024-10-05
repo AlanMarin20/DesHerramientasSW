@@ -109,5 +109,7 @@ iter : opal
     ;
 iif : IF PA cond PC instruccion
     | IF PA PC instruccion
+    | IF PA NUMERO PC instruccion
+    | IF PA ID PC instruccion
     ;
 bloque : LLA instrucciones LLC; 
