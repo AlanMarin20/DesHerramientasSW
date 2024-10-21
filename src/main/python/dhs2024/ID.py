@@ -24,6 +24,6 @@ class Variable(ID) :
         super.__init__(nombre, tipoDatoVariable, inicializando, usado)
 
 class Funcion(ID) :
-    def __init__(self, nombre, tipoDato, inicializando, usado):
+    def __init__(self, nombre, tipoDato, inicializando, usado, args):
         super.__init__(nombre, tipoDato, inicializando, usado)
         self.args = args
