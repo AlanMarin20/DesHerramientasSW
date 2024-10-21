@@ -1,3 +1,6 @@
-while (x){
+while(x){    
     int miVariable;
+}
+{
+    int miVar;
 }
