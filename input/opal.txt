@@ -1,6 +1,3 @@
-while(x){    
-    int miVariable;
-}
-{
-    int miVar;
+int funcion(){
+    int a;
 }
