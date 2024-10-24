@@ -90,8 +90,8 @@ prototSpyc : declaracion PA PC // int x ()
               | declaracion PA parFunc PC // int x (int y, int z) Tambien acepta int x (int y)
               ;
 
-parFunc : declaracion ID COMA parFunc
-       | declaracion ID
+parFunc : declaracion COMA parFunc
+       | declaracion
        ;
 
 funcion : prototSpyc LLA instrucciones LLC ; 

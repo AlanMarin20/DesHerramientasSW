@@ -27,6 +27,8 @@ class Escucha (compiladoresListener) :
 
     def enterDeclaracion(self, ctx:compiladoresParser.DeclaracionContext):
         print("####Declaracion####")
+        if isinstance(ctx, compiladoresParser.FuncionContext):
+            print("Funcion")
 
     def exitDeclaracion(self, ctx:compiladoresParser.DeclaracionContext):
         print("####Sali de declaracion####")
