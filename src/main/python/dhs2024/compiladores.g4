@@ -25,7 +25,13 @@ MENOREQ : '<=';
 MENOR : '<';
 IGUAL : '==';
 AND : '&&';
+ANDsim : '&'; // agregado 24/10
 OR : '||';
+ORsim: '|'; // agregado 24/10
+POT: '^'; // agregado 24/10
+DESPizq: '<<'; // agregado 24/10
+DESPder: '>>'; // agregado 24/10
+
 
 WHILE :'while';
 NUMERO : DIGITO+ ;
@@ -38,6 +44,18 @@ DOUBLE:'double';
 RETURN: 'return';
 
 tipodato: INT | CHAR | FLOAT | BOOLEAN | DOUBLE ;
+
+opComp: SUMA // agregado 24/10
+      | RESTA
+      | MULT
+      | DIV
+      | MOD
+      | ANDsim
+      | ORsim
+      | POT
+      | DESPder
+      | DESPizq
+      ;
 
 FOR: 'for';
 IF: 'if' ;
@@ -67,36 +85,35 @@ instrucciones : instruccion instrucciones //es una instruccion con mas instrucci
                 ;
 
 instruccion: declaracion PYC
-              | declAsig PYC
-              | iwhile
-              | ifor
-              | if
-              | else
-              | bloque
-              | asignacion PYC
-              | prototSpyc PYC 
-              | funcion
-              | RETURN exp PYC 
-              ;
+            | declAsig PYC
+            | iwhile
+            | ifor
+            | if
+            | else
+            | bloque
+            | asignacion PYC
+            | prototSpyc PYC 
+            | funcion
+            | RETURN exp PYC 
+            ;
 
-//Agregados de Alan
 declaracion : tipodato ID ; // int x
 declAsig : declaracion ASIG NUMERO // int x = 5;
        | declaracion ASIG ID // int x = a;
+       | declaracion ASIG opal //int x=chule+bauti
        ; 
 
 
-prototSpyc : declaracion PA PC // int x ()
-              | declaracion PA parFunc PC // int x (int y, int z) Tambien acepta int x (int y)
-              ;
+prototSpyc :tipodato ID PA PC // int x ()
+           | tipodato ID PA parFunc PC; // int x (int y, int z) Tambien acepta int x (int y)
 
-parFunc : declaracion COMA parFunc
-       | declaracion
-       ;
+parFunc : tipodato ID (COMA tipodato ID)* ; // El asterisco indica que pueden haber una o mas 'parejas' de coma declaracion
+                                            // no se puede poner (COMA parFunc)* porque toma mal los datos en el escucha
 
-funcion : prototSpyc LLA instrucciones LLC ; 
-//hasta aca
-asignacion: ID ASIG opal ;
+funcion : prototSpyc bloque; 
+
+asignacion: ID ASIG opal 
+          | ID opComp ASIG opal; //x= operacion 
 
 opal: or;  //completar una operacion aridmeticas, buscar en cppreference, agregamoss operaciones relacionales
 
