@@ -25,15 +25,14 @@ MENOREQ : '<=';
 MENOR : '<';
 IGUAL : '==';
 AND : '&&';
-ANDsim : '&'; // agregado 24/10
+ANDsim : '&'; 
 OR : '||';
-ORsim: '|'; // agregado 24/10
-POT: '^'; // agregado 24/10
-DESPizq: '<<'; // agregado 24/10
-DESPder: '>>'; // agregado 24/10
+ORsim: '|'; 
+POT: '^'; 
+DESPizq: '<<'; 
+DESPder: '>>'; 
 
 
-WHILE :'while';
 NUMERO : DIGITO+ ;
 
 INT:'int';
@@ -45,7 +44,7 @@ RETURN: 'return';
 
 tipodato: INT | CHAR | FLOAT | BOOLEAN | DOUBLE ;
 
-opComp: SUMA // agregado 24/10
+opComp: SUMA 
       | RESTA
       | MULT
       | DIV
@@ -57,6 +56,7 @@ opComp: SUMA // agregado 24/10
       | DESPizq
       ;
 
+WHILE :'while';
 FOR: 'for';
 IF: 'if' ;
 ELSE: 'else' ;
@@ -88,22 +88,22 @@ instruccion: declaracion PYC
             | declAsig PYC
             | iwhile
             | ifor
-            | if
-            | else
+            | iif
+            | ielse
             | bloque
             | asignacion PYC
             | prototSpyc PYC 
             | funcion
-            | RETURN exp PYC 
+            | RETURN opal PYC 
+            | callFunction PYC
             ;
 
 declaracion : tipodato ID ; // int x
-declAsig : declaracion ASIG NUMERO // int x = 5;
-       | declaracion ASIG ID // int x = a;
-       | declaracion ASIG opal //int x=chule+bauti
+declAsig : declaracion ASIG opal //int x=chule+bauti
+       | declaracion ASIG callFunction
        ; 
 
-
+///////////////////// FUNCION
 prototSpyc :tipodato ID PA PC // int x ()
            | tipodato ID PA parFunc PC; // int x (int y, int z) Tambien acepta int x (int y)
 
@@ -112,8 +112,18 @@ parFunc : tipodato ID (COMA tipodato ID)* ; // El asterisco indica que pueden ha
 
 funcion : prototSpyc bloque; 
 
+callFunction : ID PA envPar PC ; // Llamada a funcion
+
+envPar : opal lista_envPar | ; // Parametros enviados en la llamada
+lista_envPar : COMA opal lista_envPar | ; // Lista de parametros separados por comas
+
+////////////////////// FIN FUNCION
 asignacion: ID ASIG opal 
-          | ID opComp ASIG opal; //x= operacion 
+          | ID opComp ASIG opal //x+=operacion
+          | ID ASIG callFunction
+          | incremento
+          | decremento
+          ;
 
 opal: or;  //completar una operacion aridmeticas, buscar en cppreference, agregamoss operaciones relacionales
 
@@ -159,26 +169,28 @@ factor : NUMERO  //parentesis es factor
       | PA or PC
       ;
 
-iwhile : WHILE PA ID PC instruccion ;//llave es instruccion compuesta, despues del while una instruccion
+//iwhile : WHILE PA ID PC instruccion ;//llave es instruccion compuesta, despues del while una instruccion
+  iwhile : WHILE PA cond PC bloque ;
 
 bloque : LLA instrucciones LLC; 
 
 //for :
-ifor : FOR PA init PYC cond PYC iter PC instruccion;
+ifor : FOR PA init PYC cond PYC iter PC bloque //Cambie instruccion por bloque y tambien en if y else
+     | FOR PA declAsig PYC cond PYC iter PC bloque 
+     ;
+
 init : ID ASIG NUMERO ;
 cond : opal;
 iter : asignacion
       | incremento
       | decremento 
-      | preincremento
-      | predecremento
       ;
-incremento : ID INCR ;
-decremento : ID DECR ;
-preincremento : INCR ID ;
-predecremento : DECR ID ;
+incremento : ID INCR
+           | INCR ID ;
+decremento : ID DECR 
+           | DECR ID;
 //fin for
 
 //if
-if : IF PA opal PC instruccion ;
-else : ELSE instruccion ;
+iif : IF PA opal PC bloque ; //Modifique el nombre con una i adelante para que señale instruccion
+ielse : ELSE bloque ;        //y tambien los modifique donde se los usaba

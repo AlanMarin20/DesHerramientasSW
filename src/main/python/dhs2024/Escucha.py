@@ -17,14 +17,6 @@ class Escucha (compiladoresListener) :
     def enterPrograma(self, ctx:compiladoresParser.ProgramaContext):
         print("Comienza la compilacion")
 
-    def enterIwhile(self, ctx:compiladoresParser.IwhileContext):
-        print("Encontre WHILE\n")
-
-    def exitIwhile(self, ctx:compiladoresParser.IwhileContext):
-        print("FIN del WHILE")
-        print("\tCantidad hijos: " + str(ctx.getChildCount()))
-        print("\tTokens: " + str(ctx.getText())+"\n")
-
     def enterDeclaracion(self, ctx:compiladoresParser.DeclaracionContext):
         print("####Declaracion####")
         if isinstance(ctx, compiladoresParser.FuncionContext):
@@ -50,8 +42,9 @@ class Escucha (compiladoresListener) :
 
 
     def visitTerminal(self, node: TerminalNode):
-        #print("----> Token: " + node.getText())
+        # print("----> Token: " + node.getText())
         self.numTokens += 1
+        self.numTokensTotal += 1
 
     def visitErrorNode(self, node: ErrorNode):
         print("----> Error: ")
@@ -134,3 +127,27 @@ class Escucha (compiladoresListener) :
         print("########En esta función se encontró lo siguiente########")
         self.tablaDeSimbolos.contextos[-1].imprimirTabla()  
         self.tablaDeSimbolos.delContexto()
+#Agregue estos bucles y pase el while junto
+    def enterIif(self, ctx: compiladoresParser.IfContext) :
+        print(' ### Entrando a un if ###\n')
+        contexto = Contexto()
+        self.tablaDeSimbolos.addContexto(contexto)
+    
+    def exitIif(self, ctx: compiladoresParser.IfContext) :
+        print('### Saliendo del if ###\n')
+
+    def enterIfor(self, ctx: compiladoresParser.IforContext) :
+        print("### Entrando a un for ###\n")
+        contexto = Contexto()
+        self.tablaDeSimbolos.addContexto(contexto)
+
+    def exitIfor(self, ctx: compiladoresParser.IforContext) :
+        print("### Saliendo del for ###\n")
+
+    def enterIwhile(self, ctx:compiladoresParser.IwhileContext):
+        print("Encontre WHILE\n")
+
+    def exitIwhile(self, ctx:compiladoresParser.IwhileContext):
+        print("FIN del WHILE")
+        print("\tCantidad hijos: " + str(ctx.getChildCount()))
+        print("\tTokens: " + str(ctx.getText())+"\n")
