@@ -128,13 +128,15 @@ class Escucha (compiladoresListener) :
         self.tablaDeSimbolos.contextos[-1].imprimirTabla()  
         self.tablaDeSimbolos.delContexto()
 #Agregue estos bucles y pase el while junto
-    def enterIif(self, ctx: compiladoresParser.IfContext) :
+    def enterIif(self, ctx: compiladoresParser.IifContext) :
         print(' ### Entrando a un if ###\n')
         contexto = Contexto()
         self.tablaDeSimbolos.addContexto(contexto)
     
-    def exitIif(self, ctx: compiladoresParser.IfContext) :
+    def exitIif(self, ctx: compiladoresParser.IifContext) :
         print('### Saliendo del if ###\n')
+        #COMPLETAR
+        self.tablaDeSimbolos.delContexto() #Esto elimina el ultimo contexto agregado a tablaDeSimbolos
 
     def enterIfor(self, ctx: compiladoresParser.IforContext) :
         print("### Entrando a un for ###\n")
@@ -143,6 +145,9 @@ class Escucha (compiladoresListener) :
 
     def exitIfor(self, ctx: compiladoresParser.IforContext) :
         print("### Saliendo del for ###\n")
+        #COMPLETAR
+        self.tablaDeSimbolos.delContexto() #Esto elimina el ultimo contexto agregado a tablaDeSimbolos
+        
 
     def enterIwhile(self, ctx:compiladoresParser.IwhileContext):
         print("Encontre WHILE\n")
@@ -151,3 +156,15 @@ class Escucha (compiladoresListener) :
         print("FIN del WHILE")
         print("\tCantidad hijos: " + str(ctx.getChildCount()))
         print("\tTokens: " + str(ctx.getText())+"\n")
+        self.tablaDeSimbolos.delContexto() #Esto elimina el ultimo contexto agregado a tablaDeSimbolos
+
+    def enterIelse(self, ctx: compiladoresParser.IelseContext):
+        print("### Entrando a un else ###\n")
+        contexto = Contexto()
+        self.tablaDeSimbolos.addContexto(contexto)
+
+    def exitIelse(self, ctx: compiladoresParser.IelseContext):
+        print("### Saliendo del else ###\n")
+        #COMPLETAR
+        self.tablaDeSimbolos.delContexto() #Esto elimina el ultimo contexto agregado a tablaDeSimbolos
+
