@@ -40,6 +40,7 @@ CHAR:'char';
 FLOAT:'float';
 BOOLEAN:'bool';
 DOUBLE:'double';
+VOID: 'void';
 RETURN: 'return';
 
 tipodato: INT | CHAR | FLOAT | BOOLEAN | DOUBLE ;
@@ -92,20 +93,27 @@ instruccion: declaracion PYC
             | ielse
             | bloque
             | asignacion PYC
-            | prototSpyc PYC 
+            | prototipoFuncion
             | funcion
             | RETURN opal PYC 
             | callFunction PYC
             ;
 
-declaracion : tipodato ID ; // int x
+declaracion : tipodato ID (COMA ID)*; // int x, y, z
 declAsig : declaracion ASIG opal //int x=chule+bauti
        | declaracion ASIG callFunction
        ; 
 
+// declAsigNuevo : tipodato ID ASIG opal (COMA tipodato ID ASIG opal)* (COMA)
+
 ///////////////////// FUNCION
+prototipoFuncion : tipodato ID PA parFunc PC PYC ; //Este es el prototipo con ;
+
 prototSpyc :tipodato ID PA PC // int x ()
-           | tipodato ID PA parFunc PC; // int x (int y, int z) Tambien acepta int x (int y)
+           | tipodato ID PA parFunc PC // int x (int y, int z) Tambien acepta int x (int y)
+           | VOID ID PA PC
+           | VOID ID PA parFunc PC
+           ; 
 
 parFunc : tipodato ID (COMA tipodato ID)* ; // El asterisco indica que pueden haber una o mas 'parejas' de coma declaracion
                                             // no se puede poner (COMA parFunc)* porque toma mal los datos en el escucha

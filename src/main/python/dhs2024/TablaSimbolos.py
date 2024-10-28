@@ -29,17 +29,22 @@ class TablaSimbolos(object) :
         contexto = self.contextos[-1]
         id = ID(nombre, tipoDato, 1, 1)
         contexto.tabla.update({nombre:id})
-        print("SE ANADIO UN IDENTIFICADOR")
+        # print("SE ANADIO UN IDENTIFICADOR")
 
-    def buscarLocal(self, nombre) :
-        if (self.contextos[-1].traerVariable(nombre)) == None:
-            print('"' + nombre + '" no esta usado\n')
-
-        else:
-            print('"' + nombre + " ya esta siendo usada localmente\n")
+    def buscarLocal(self, nombre) : # 
+        if (self.contextos[-1].traerVariable(nombre)) != None:
+        #    print('"' + nombre + '" se esta usando a nivel LOCAL\n') 
+            return 1
+        return 0
         
     def buscarGlobal(self, nombre) :
         if(self.contextos[0].traerVariable(nombre)) != None:
-            print('"' + nombre + " ya esta siendo usada globalmente\n")
+        #    print('"' + nombre + " ya esta siendo usada globalmente\n")
+            return 1
+        return 0
+    
+    def buscarFuncionGlobal(self, nombre) :
+        if(self.contextos[0].traerVariable(nombre)) != None:
+            print('"' + nombre + '" esta declarada, se puede usar\n')
             return 1
         return 0

@@ -13,7 +13,7 @@ class ID() :
     def __init__(self, nombre, tD, inicializado, usado):
         self.nombre = nombre
         self.tipoDato = TipoDato(tD)
-        self.inicializando = inicializado
+        self.inicializado = inicializado
         self.usado = usado
 
     def __str__(self):
