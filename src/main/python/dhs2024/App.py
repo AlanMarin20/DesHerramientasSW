@@ -17,7 +17,7 @@ def main(argv):
     escucha = Escucha() 
     parser.addParseListener(escucha) 
     tree = parser.programa()
-   # print(tree.toStringTree(recog=parser)) #esta linea impime el arbol 
+    # print(tree.toStringTree(recog=parser)) #esta linea impime el arbol 
     # caminante = Walker()
     # caminante.visitPrograma(tree)
 
