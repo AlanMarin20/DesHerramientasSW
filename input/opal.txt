@@ -1,6 +1,2 @@
-int prueba (int x);
-
-int prueba (int x){
-    
-}
+int prueba (int x, int y);
 

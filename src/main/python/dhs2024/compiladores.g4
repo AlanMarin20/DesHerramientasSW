@@ -107,7 +107,7 @@ declAsig : declaracion ASIG opal //int x=chule+bauti
 // declAsigNuevo : tipodato ID ASIG opal (COMA tipodato ID ASIG opal)* (COMA)
 
 ///////////////////// FUNCION
-prototipoFuncion : tipodato ID PA parFunc PC PYC ; //Este es el prototipo con ;
+prototipoFuncion : tipodato ID PA (parFunc)? PC PYC ; //Este es el prototipo con ;
 
 prototSpyc :tipodato ID PA PC // int x ()
            | tipodato ID PA parFunc PC // int x (int y, int z) Tambien acepta int x (int y)
