@@ -38,9 +38,9 @@ class Escucha (compiladoresListener) :
            nombreVariables.append(ctx.getChild(i).getText())   
            #int x , y , z; --> hacemos que el for arranque en la segunda variable y salte de a dos
        for nombreVariable in nombreVariables:
-           if self.tablaDeSimbolos.buscarGlobal(nombreVariable) == 1:
+           if (self.tablaDeSimbolos.buscarGlobal(nombreVariable)) is not None:
                print('La variable "' + nombreVariable + '" ya está usada a nivel GLOBAL, debes escoger otro nombre.')
-           elif self.tablaDeSimbolos.buscarLocal(nombreVariable) == 1:
+           elif (self.tablaDeSimbolos.buscarLocal(nombreVariable)) is not None:
                print('La variable "' + nombreVariable + '" ya está usada a nivel LOCAL, debes escoger otro nombre.')
            else:
                print('La variable "' + nombreVariable + '" se agregó correctamente a la tabla de símbolos.')
@@ -50,20 +50,20 @@ class Escucha (compiladoresListener) :
         print('### ASIGNACION ###')
 
     def exitAsignacion(self, ctx: compiladoresParser.AsignacionContext):
-       nombreVariable = ctx.getChild(0).getText()
-       print('Analizando variable: "' + nombreVariable + '"\n')
+        nombreVariable = ctx.getChild(0).getText()
+        print('Analizando variable: "' + nombreVariable + '"\n')
 
-       buscarGlobal = self.tablaDeSimbolos.buscarGlobal(nombreVariable)
-       buscarLocal = self.tablaDeSimbolos.buscarLocal(nombreVariable)
+        variableGlobal = self.tablaDeSimbolos.buscarGlobal(nombreVariable) 
+        variableLocal = self.tablaDeSimbolos.buscarLocal(nombreVariable) 
 
-       if buscarLocal == 1:
-           print('La variable "' + nombreVariable + '" se encontro a nivel local')
-           buscarLocal.inicializado = 1 #CONTROLAR PORQUE ESTA MAL .inicializado
-       elif buscarGlobal == 1:
-           print('La variable "' + nombreVariable + '" se encontro a nivel global')
-           buscarGlobal.inicializado = 1 #CONTROLAR PORQUE ESTA MAL .inicializado
-       else:
-           print('La variable "' + nombreVariable + '" no existe por lo tanto no puede ser asignada')   
+        if variableLocal is not None:
+            print('La variable "' + nombreVariable + '" se encontró a nivel local')
+            variableLocal.inicializado = 1  # Acceso directo al objeto
+        elif variableGlobal is not None:
+            print('La variable "' + nombreVariable + '" se encontró a nivel global')
+            variableGlobal.inicializado = 1  # Acceso directo al objeto
+        else:
+            print('La variable "' + nombreVariable + '" no existe, por lo tanto no puede ser asignada')
 
     # def enterDeclAsig(self, ctx: compiladoresParser.DeclAsigContext):
     #    print("### Entrando a una declaración de asignación ###\n")

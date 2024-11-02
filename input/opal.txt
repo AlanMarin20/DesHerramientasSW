@@ -1,9 +1,6 @@
-int funcion (int x, int y);
-int funcion (int x, int y){
+int a;
+int x;
+int a;
 
-}
-int prueba (int a, int b){
-    
-}
 
 
