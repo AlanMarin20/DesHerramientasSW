@@ -31,7 +31,7 @@ class TablaSimbolos(object) :
         contexto.tabla.update({nombre:id})
         # print("SE ANADIO UN IDENTIFICADOR")
 
-    def buscarLocal(self, nombre) : # 
+    def buscarLocal(self, nombre) : 
         if (self.contextos[-1].traerVariable(nombre)) != None:
         #    print('"' + nombre + '" se esta usando a nivel LOCAL\n') 
             variable = self.contextos[-1].traerVariable(nombre)
@@ -41,7 +41,7 @@ class TablaSimbolos(object) :
     def buscarGlobal(self, nombre) :
         if(self.contextos[0].traerVariable(nombre)) != None:
         #    print('"' + nombre + " ya esta siendo usada globalmente\n")
-            variable = self.contextos[-1].traerVariable(nombre)
+            variable = self.contextos[0].traerVariable(nombre)
             return variable  # Retorna la instancia
         return None # Retorna None si no existe
     
@@ -50,3 +50,10 @@ class TablaSimbolos(object) :
             print('"' + nombre + '" esta declarada, se puede usar\n')
             return 1
         return 0
+    
+    def imprimirTabla(self):
+        print("Tabla de Símbolos:")
+        for i, contexto in enumerate(self.contextos):
+            print(f"Contexto {i}:")
+            for nombre, id in contexto.tabla.items():
+                print(f"  - Nombre: {nombre}, Tipo: {id.tipoDato}")

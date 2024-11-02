@@ -167,7 +167,7 @@ class Escucha (compiladoresListener) :
                     i += 3  # Saltamos tipo, nombre y coma
                 else:
                     break  # No hay más parámetros
-
+            # self.tablaDeSimbolos.imprimirTabla()   
         else:
             print('No hay parametros')
         if listaParametros: 
