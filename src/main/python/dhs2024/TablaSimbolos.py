@@ -20,7 +20,7 @@ class TablaSimbolos(object) :
         print("largo de la lista de contextos: "+ str(len(self.contextos)))
 
     def delContexto(self) :
-        if self.contextos: #Verifica si hay o no contextos antes de eliminar
+        if len(self.contextos) > 1: #Verifica si hay o no contextos antes de eliminar
             self.contextos.pop()
         else:
             print("No hay contextos para eliminar.")

@@ -1,2 +1,9 @@
-int prueba (int x, int y);
+int funcion (int x, int y);
+int funcion (int x, int y){
+
+}
+int prueba (int a, int b){
+    
+}
+
 

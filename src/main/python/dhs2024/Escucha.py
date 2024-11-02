@@ -95,7 +95,7 @@ class Escucha (compiladoresListener) :
             return None
         
         # Imprimir el nombre de la funcion y el tipo de retorno
-        print(f'Prototipo de función encontrado, nombre: "' + nombreFuncion + '"tipo de dato de retorno: ' + tipoRetorno)
+        print(f'Prototipo de función encontrado, nombre: "' + nombreFuncion + ' " tipo de dato de retorno: ' + tipoRetorno)
 
         # Obtener los parámetros de la función, si existen
         parametros = ctx.parFunc()  #Iguala los parametros que le pasaron a la variable parametros
@@ -111,7 +111,7 @@ class Escucha (compiladoresListener) :
                 nombreParametro = parametros.getChild(i+1).getText()  # Nombre del parámetro
                 listaParametros.append(f"{tipoParametro} {nombreParametro}")#Agrega los parametros a la lista para mostrarlos
                                                                             #pero no los agrega a la tabla de simbolos
-                
+                self.tablaDeSimbolos.addIdentificador(nombreParametro, tipoParametro)
                 # Aumentar el índice en 3 para saltar tipo, nombre y la coma
                 if i + 2 < numHijos and parametros.getChild(i + 2).getText() == ',': 
                 #Esta comprobacion sirve para ver si hay otro parametro o si es el ultimo
@@ -138,8 +138,9 @@ class Escucha (compiladoresListener) :
         tipoRetorno = ctx.prototSpyc().tipodato().getText()
         nombreFuncion = ctx.prototSpyc().ID().getText()
         if (self.tablaDeSimbolos.buscarFuncionGlobal(nombreFuncion)) == 0: #Busca si la funcion esta declarada
-            print('La funcion ' + nombreFuncion + '" no esta declarada.\n')
-            return None
+            print('La funcion "' + nombreFuncion + '" no esta declarada pero será agregada.\n')
+            self.tablaDeSimbolos.addIdentificador(nombreFuncion, tipoRetorno)
+            # return None
         
         # Imprimir la función encontrada para fines de depuración
         print(f'Función encontrada: "' + nombreFuncion + '" con tipo de retorno: ' + tipoRetorno)
