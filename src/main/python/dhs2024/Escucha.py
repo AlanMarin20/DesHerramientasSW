@@ -24,47 +24,87 @@ class Escucha (compiladoresListener) :
         print('Tokens: ' + str(self.numTokensTotal) + "\n")
 
 #----INSTRUCCIONES----
+    def enterInstruccion(self, ctx: compiladoresParser.InstruccionContext):
+        pass
+
+    def exitInstruccion(self, ctx: compiladoresParser.InstruccionContext):
+        # Verificamos si es un tipo de instrucción que queremos analizar
+        if ctx.declaracion() or ctx.asignacion() or ctx.callFunction() or ctx.RETURN():
+            # Obtenemos el número total de hijos
+            numHijos = ctx.getChildCount()
+            # Verificamos si hay hijos y si el último hijo no es un punto y coma
+            if numHijos > 0:  # Asegurarse de que haya al menos un hijo
+                ultimoHijo = ctx.getChild(numHijos - 1)  # Accedemos al último hijo
+                if ultimoHijo.getText() != ';':  # Comparamos con ';'
+                    print('ERROR: se espera un ;')
+                  
+                
+
     def enterDeclaracion(self, ctx:compiladoresParser.DeclaracionContext):
-        print('####Declaracion####')
+        #print('####Declaracion####')
         if isinstance(ctx, compiladoresParser.FuncionContext):
             print('Funcion')
 
-    def exitDeclaracion(self, ctx:compiladoresParser.DeclaracionContext):
-       print('####Sali de declaracion####')
-       tipoVariable = ctx.getChild(0).getText()
-       print ('tipo de dato: ' + tipoVariable + '\n')
-       nombreVariables = []
-       for i in range(1, ctx.getChildCount(), 2):
-           nombreVariables.append(ctx.getChild(i).getText())   
-           #int x , y , z; --> hacemos que el for arranque en la segunda variable y salte de a dos
-       for nombreVariable in nombreVariables:
-           if (self.tablaDeSimbolos.buscarGlobal(nombreVariable)) is not None:
-               print('La variable "' + nombreVariable + '" ya está usada a nivel GLOBAL, debes escoger otro nombre.')
-           elif (self.tablaDeSimbolos.buscarLocal(nombreVariable)) is not None:
-               print('La variable "' + nombreVariable + '" ya está usada a nivel LOCAL, debes escoger otro nombre.')
-           else:
+    def exitDeclaracion(self, ctx:compiladoresParser.DeclaracionContext):            
+        #print('####Sali de declaracion####')
+        tipoVariable = ctx.getChild(0).getText()
+        print ('tipo de dato: ' + tipoVariable + '\n')
+        nombreVariables = []
+        for i in range(1, ctx.getChildCount(), 2):
+            if ctx.getChild(i).getText() == ';' or ctx.getChild(i).getText() == ',' or ctx.getChild(i).getText() == '<missing ID>':
+                print('ERROR SINTACTICO DE FORMATO PARA DECLARAR VARIABLE')
+                return None
+            elif ctx.getChild(i).getSymbol().type == compiladoresParser.ID:
+                nombreVariables.append(ctx.getChild(i).getText()) 
+            else:
+               print("Error sintactico: Falta un ID") 
+               return None    
+            #int x , y , z; --> hacemos que el for arranque en la segunda variable y salte de a dos
+        for nombreVariable in nombreVariables:
+            if (self.tablaDeSimbolos.buscarGlobal(nombreVariable)) is not None:
+                print('WARNING(error semantico): La variable' + nombreVariable + 'ya existe a nivel global')
+            elif (self.tablaDeSimbolos.buscarLocal(nombreVariable)) is not None:
+               print('WARNING(error semantico): La variable' + nombreVariable + 'ya existe a nivel local')
+            else:
                print('La variable "' + nombreVariable + '" se agregó correctamente a la tabla de símbolos.')
                self.tablaDeSimbolos.addIdentificador(nombreVariable, tipoVariable)
-    
+        
     def enterAsignacion(self, ctx: compiladoresParser.AsignacionContext):
-        print('### ASIGNACION ###')
+        pass
+        #print('### ASIGNACION ###')
 
     def exitAsignacion(self, ctx: compiladoresParser.AsignacionContext):
         nombreVariable = ctx.getChild(0).getText()
         print('Analizando variable: "' + nombreVariable + '"\n')
-
+        numHijos = ctx.getChildCount()
         variableGlobal = self.tablaDeSimbolos.buscarGlobal(nombreVariable) 
         variableLocal = self.tablaDeSimbolos.buscarLocal(nombreVariable) 
-
+        tipoDatoIzq = None
         if variableLocal is not None:
             print('La variable "' + nombreVariable + '" se encontró a nivel local')
             variableLocal.inicializado = 1  # Acceso directo al objeto
+            tipoDatoIzq = variableLocal.tipoDato
         elif variableGlobal is not None:
             print('La variable "' + nombreVariable + '" se encontró a nivel global')
             variableGlobal.inicializado = 1  # Acceso directo al objeto
+            tipoDatoIzq = variableLocal.tipoDato
         else:
-            print('La variable "' + nombreVariable + '" no existe, por lo tanto no puede ser asignada')
-
+            print('WARNING(error semantico): La variable' + nombreVariable + 'no esta declarada')
+    
+        #CAMBIAR ATRIBUTO USADO A 1
+        for i in range(2, ctx.getChildCount()):  # Empezar desde 1 para saltar el ID que estamos asignando
+            if ctx.getChildCount() == 0:
+                print('+++++++++++++++++encontre un nodo terminal' )
+                nombreVariableUsada = child(i).getText()
+                variableUsadaGlobal = self.tablaDeSimbolos.buscarGlobal(nombreVariableUsada)
+                variableUsadaLocal = self.tablaDeSimbolos.buscarLocal(nombreVariableUsada)
+                print("nombre-----------------    "+nombreVariableUsada)
+                # Si encontramos la variable del lado derecho del ASIG, cambiar 'usada' a 1
+                if variableUsadaLocal is not None:
+                    variableUsadaLocal.usado = 1
+                elif variableUsadaGlobal is not None:
+                    variableUsadaGlobal.usado = 1
+    
     # def enterDeclAsig(self, ctx: compiladoresParser.DeclAsigContext):
     #    print("### Entrando a una declaración de asignación ###\n")
   
@@ -88,6 +128,24 @@ class Escucha (compiladoresListener) :
         print('### Encontre un prototipo ###\n')
 
     def exitPrototipoFuncion(self, ctx: compiladoresParser.PrototipoFuncionContext):
+        #Verificacion PYC al final
+        numHijos = ctx.getChildCount()
+            # Verificamos si hay hijos y si el último hijo no es un punto y coma
+        if numHijos > 0:  # Asegurarse de que haya al menos un hijo
+            ultimoHijo = ctx.getChild(numHijos - 1)  # Accedemos al último hijo
+            if ultimoHijo.getText() != ';':  # Comparamos con ';'
+                print('ERROR: se espera un ;')
+        #Verificacion parentesis
+        print(ctx.getChild(2).getText())
+        print(ctx.getChild(numHijos).getText())
+        if ctx.getChild(2).getText() != '(':
+            print('ERROR SINTACTICO: Falta parentesis de apertura')
+            return None
+        if ctx.getChild(numHijos-2).getText() != ')':
+            print('ERROR SINTACTICO: Falta parentesis de cierre')
+            return None          
+        
+        
         tipoRetorno = ctx.tipodato().getText()
         nombreFuncion = ctx.ID().getText()
         if self.tablaDeSimbolos.buscarGlobal(nombreFuncion):
@@ -134,7 +192,7 @@ class Escucha (compiladoresListener) :
         contexto = Contexto()
         self.tablaDeSimbolos.addContexto(contexto)
     
-    def exitFuncion(self, ctx: compiladoresParser.FuncionContext):        
+    def exitFuncion(self, ctx: compiladoresParser.FuncionContext):
         tipoRetorno = ctx.prototSpyc().tipodato().getText()
         nombreFuncion = ctx.prototSpyc().ID().getText()
         if (self.tablaDeSimbolos.buscarFuncionGlobal(nombreFuncion)) == 0: #Busca si la funcion esta declarada
@@ -193,8 +251,9 @@ class Escucha (compiladoresListener) :
         print('TOKENS: ' + ctx.getText())
 
         print("En este contesto se encontro: ")
-        self.tablaDeSimbolos.contextos[-1].imprimirTabla()
+        # self.tablaDeSimbolos.contextos[-1].imprimirTabla()
         print("*" * 20 + "\n")
+        self.tablaDeSimbolos.contextos[-1].controlarUsados()
         self.tablaDeSimbolos.delContexto()
 #-------------------------------------------
 #----BUCLES----
@@ -203,6 +262,19 @@ class Escucha (compiladoresListener) :
         print('### Entrando a un while ###\n')
 
     def exitIwhile(self, ctx:compiladoresParser.IwhileContext):
+        # if ctx.PA is None:
+        #     print('ERROR: Falta parentesis de apertura')
+        #     return None
+        # if ctx.PC is None:
+        #     print('ERROR: Falta parentesis de cierre')
+        #     return None
+        if ctx.getChild(1).getText() != '(':
+            print('ERROR SINTACTICO: Falta parentesis de apertura')
+            return None
+        if ctx.getChild(3).getText() != ')':
+            print('ERROR SINTACTICO: Falta parentesis de cierre')
+            return None
+        
         print('### Saliendo del while ###\n')
         print("\tCantidad hijos: " + str(ctx.getChildCount()))
         print("\tTokens: " + str(ctx.getText())+"\n")
@@ -214,6 +286,17 @@ class Escucha (compiladoresListener) :
         self.tablaDeSimbolos.addContexto(contexto)
 
     def exitIfor(self, ctx: compiladoresParser.IforContext) :
+        if ctx.getChild(1).getText() != '(':
+            print(ctx.getChild(1).getText())
+            print('ERROR SINTACTICO: Falta parentesis de apertura')
+            return None
+        if ctx.getChild(7).getText() != ')':
+            print(ctx.getChild(7).getText())
+            print('ERROR SINTACTICO: Falta parentesis de cierre')
+            return None
+        if ctx.getChild(3).getText() != ';' or ctx.getChild(5).getText() != ';':
+            print('ERROR SINTACTICO: Falta ;')
+            return None
         print('### Saliendo del for ###\n')
         #COMPLETAR
         self.tablaDeSimbolos.delContexto() #Esto elimina el ultimo contexto agregado a tablaDeSimbolos
@@ -224,6 +307,12 @@ class Escucha (compiladoresListener) :
         self.tablaDeSimbolos.addContexto(contexto)
     
     def exitIif(self, ctx: compiladoresParser.IifContext) :
+        if ctx.getChild(1).getText() != '(':
+            print('ERROR SINTACTICO: Falta parentesis de apertura')
+            return None
+        if ctx.getChild(3).getText() != ')':
+            print('ERROR SINTACTICO: Falta parentesis de cierre')
+            return None
         print('### Saliendo del if ###\n')
         #COMPLETAR
         self.tablaDeSimbolos.delContexto() #Esto elimina el ultimo contexto agregado a tablaDeSimbolos
@@ -251,3 +340,5 @@ class Escucha (compiladoresListener) :
     def enterEveryRule(self, ctx):
         self.numNodos += 1
         self.numNodosTotal += 1
+
+#---------------AGREGADO

@@ -12,3 +12,10 @@ class Contexto():
     def imprimirTabla(self):
         for clave, valor in self.tabla.items():
             print(f"{clave}: {valor}")
+    
+    def controlarUsados(self):
+        print("Estado de uso de las variables:")
+        for nombre, id in self.tabla.items():
+            if id.usado == 0:
+                print('WARNING(error semantico): La variable: ' + nombre + ' esta declarada pero no usada')
+    

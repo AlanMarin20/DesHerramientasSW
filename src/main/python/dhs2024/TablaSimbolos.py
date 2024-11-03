@@ -27,7 +27,7 @@ class TablaSimbolos(object) :
 
     def addIdentificador(self, nombre, tipoDato) :
         contexto = self.contextos[-1]
-        id = ID(nombre, tipoDato, 1, 1)
+        id = ID(nombre, tipoDato, 1, 0, 0) #declarado,inicialidado,usado
         contexto.tabla.update({nombre:id})
         # print("SE ANADIO UN IDENTIFICADOR")
 
@@ -50,10 +50,4 @@ class TablaSimbolos(object) :
             print('"' + nombre + '" esta declarada, se puede usar\n')
             return 1
         return 0
-    
-    def imprimirTabla(self):
-        print("Tabla de Símbolos:")
-        for i, contexto in enumerate(self.contextos):
-            print(f"Contexto {i}:")
-            for nombre, id in contexto.tabla.items():
-                print(f"  - Nombre: {nombre}, Tipo: {id.tipoDato}")
+

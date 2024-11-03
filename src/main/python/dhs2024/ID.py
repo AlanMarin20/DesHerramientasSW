@@ -10,9 +10,10 @@ class TipoDato(Enum) :
 
 class ID() :
 
-    def __init__(self, nombre, tD, inicializado, usado):
+    def __init__(self, nombre, tD, declarado, inicializado, usado):
         self.nombre = nombre
         self.tipoDato = TipoDato(tD)
+        self.declarado = declarado
         self.inicializado = inicializado
         self.usado = usado
 
@@ -20,10 +21,10 @@ class ID() :
         return("ID: \t" + self.nombre + "\t" + str(self.tipoDato))
     
 class Variable(ID) :
-    def __init__(nombre, tipoDatoVariable, inicializado, usado):
-        super.__init__(nombre, tipoDatoVariable, inicializado, usado)
+    def __init__(nombre, tipoDatoVariable, declarado, inicializado, usado):
+        super.__init__(nombre, tipoDatoVariable, declarado, inicializado, usado)
 
 class Funcion(ID) :
-    def __init__(self, nombre, tipoDato, inicializado, usado, args):
-        super.__init__(nombre, tipoDato, inicializado, usado)
+    def __init__(self, nombre, tipoDato, declarado,  inicializado, usado, args):
+        super.__init__(nombre, tipoDato, declarado, inicializado, usado)
         self.args = args

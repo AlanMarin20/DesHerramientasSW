@@ -85,8 +85,8 @@ instrucciones : instruccion instrucciones //es una instruccion con mas instrucci
                 |
                 ;
 
-instruccion: declaracion PYC
-            | declAsig PYC
+instruccion: declaracion PYC 
+            // | declAsig PYC 
             | iwhile
             | ifor
             | iif
@@ -100,17 +100,17 @@ instruccion: declaracion PYC
             ;
 
 declaracion : tipodato ID (COMA ID)*; // int x, y, z
-declAsig : declaracion ASIG opal //int x=chule+bauti
-       | declaracion ASIG callFunction
-       ; 
+// declAsig : declaracion ASIG opal //int x=chule+bauti
+//        | declaracion ASIG callFunction
+//        ; 
 
 // declAsigNuevo : tipodato ID ASIG opal (COMA tipodato ID ASIG opal)* (COMA)
 
 ///////////////////// FUNCION
 prototipoFuncion : tipodato ID PA (parFunc)? PC PYC ; //Este es el prototipo con ;
 
-prototSpyc :tipodato ID PA PC // int x ()
-           | tipodato ID PA parFunc PC // int x (int y, int z) Tambien acepta int x (int y)
+prototSpyc :
+            tipodato ID PA (parFunc)? PC // int x (int y, int z) Tambien acepta int x (int y)
            | VOID ID PA PC
            | VOID ID PA parFunc PC
            ; 
@@ -127,9 +127,9 @@ lista_envPar : COMA opal lista_envPar | ; // Lista de parametros separados por c
 
 ////////////////////// FIN FUNCION
 asignacion: ID ASIG opal 
-          | ID opComp ASIG opal //x+=operacion
+          // | ID opComp ASIG opal //x+=operacion
           | ID ASIG callFunction
-          | incremento
+          //| incremento
           | decremento
           ;
 
@@ -184,7 +184,7 @@ bloque : LLA instrucciones LLC;
 
 //for :
 ifor : FOR PA init PYC cond PYC iter PC bloque //Cambie instruccion por bloque y tambien en if y else
-     | FOR PA declAsig PYC cond PYC iter PC bloque 
+    //  | FOR PA declAsig PYC cond PYC iter PC bloque 
      ;
 
 init : ID ASIG NUMERO ;
