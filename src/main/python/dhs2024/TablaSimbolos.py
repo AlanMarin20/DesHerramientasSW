@@ -51,3 +51,30 @@ class TablaSimbolos(object) :
             return 1
         return 0
 
+    # def controlarUsadosTabla(self):
+    #     self.contextos[-1].controlarUsados()
+
+    # def controlarUsados(self):
+    #     print("Estado de uso de las variables:")
+    #     for nombre, id in self.tabla.items():
+    #         if id.usado == 0:
+    #             print('WARNING(error semantico): La variable: ' + nombre + ' esta declarada pero no usada')
+    
+    def controlarUsados(self):
+        noUsados=[]
+        noInit=[]
+        print("Estado de uso de las variables:")
+        contexto_actual = self.contextos[-1]  # Obtener el contexto actual
+        for nombre, id in contexto_actual.tabla.items():  # Acceder a la tabla del contexto actual
+            print(f'Variable: {nombre}, Estado Uso: {id.usado}, Estado Inicializado: {id.inicializado}')
+            if id.usado == 0:
+                noUsados.append(nombre)
+            if id.inicializado == 0:
+                noInit.append(nombre)    
+        print("\n\n")
+        for i in noUsados:
+            print(f'WARNING(error semantico): La variable: {i} esta declarada pero no usada')
+        print("\n")
+        for j in noInit:
+            print(f'WARNING(error semantico): La variable: {j} no esta incializada, no puedes usarla')
+              

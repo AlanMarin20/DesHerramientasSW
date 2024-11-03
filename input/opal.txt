@@ -1,1 +1,4 @@
-int x,y,;
+char x;
+int i;
+i = 5;
+x = i;

@@ -1,0 +1,34 @@
+//PRUEBA FALTA PUNTO Y COMA
+int a,b
+
+int a;
+a = 5
+
+//PRUEBA FALTA DE APERTURA DE PARENTESIS
+int i;
+for i = 0;i == 5;i= i+1){
+
+}
+//PRUEBA FORMATO INCORRECTO EN LA LISTA DE DECLARACION
+int i, x,;
+
+//PRUEBA DOBLE DECLARACION DEL MISMO IDENTIFICADOR
+int x;
+int x;
+
+//PRUEBA USO DE UN IDENTIFADOR SIN INICIALIZAR
+int x;
+int i;
+i = x;
+
+//PRUEBA IDENTIFICADOR DECLARADO PERO NO USADO
+(el anterior funciona) ademas
+int x;
+int i;
+i = 5;
+x = i;
+//PRUEBA TIPO DE DATOS INCOMPATIBLES
+char x;
+int i;
+i = 5;
+x = i;
