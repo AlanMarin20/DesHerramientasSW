@@ -8,7 +8,7 @@ import re
 
 class Escucha (compiladoresListener) :
     tablaDeSimbolos = TablaSimbolos()
-
+    listaTipoDatos = [] #Lista para verificar el tipo de dato en asignacion
     numTokensTotal = 0
     numNodosTotal = 0
 
@@ -73,14 +73,81 @@ class Escucha (compiladoresListener) :
         pass
         #print('### ASIGNACION ###')
 
+
+    def idVer(self, cadena): #Identificar la variable
+        try:
+            int(cadena)  
+            return 'TipoDato.INT'
+        except ValueError:
+            try:
+                float(cadena)  
+                return 'TipoDato.FLOAT'
+            except ValueError:
+                return "no es numero"
+
+    def exitFactor(self, ctx: compiladoresParser.FactorContext):
+        
+        primero = ctx.getChild(0)
+
+        if primero.getChildCount() <= 1: # Si no tiene multiples hijos es una variable o numero
+
+            nombrePrimero = primero.getText()
+            variableGlobal = self.tablaDeSimbolos.buscarGlobal(nombrePrimero) 
+            variableLocal = self.tablaDeSimbolos.buscarLocal(nombrePrimero) 
+                 
+            if nombrePrimero != "(":
+                
+                if self.idVer(nombrePrimero) != 'TipoDato.INT' and self.idVer(nombrePrimero) != 'TipoDato.FLOAT': #entonces es una variable
+
+                    if variableGlobal is not None:  
+                        if variableGlobal.inicializado == 0: #Verificar que la variable global esta inicializada
+                            print(f'ERROR(semantico): La variable {nombrePrimero} no esta inicializada')
+                        else:
+                            self.listaTipoDatos.append(str(variableGlobal.tipoDato))  
+                            variableGlobal.usado = 1  
+                    elif variableLocal is not None: 
+                        if variableLocal.inicializado == 0: #Verificar que la variable local esta inicializada
+                            print(f'ERROR(semantico): La variable {nombrePrimero} no esta inicializada')
+                        else:
+                            self.listaTipoDatos.append(str(variableLocal.tipoDato))   
+                            variableLocal.usado = 1 
+                    else:
+                        print(f'ERROR(semantico): La variable no esta declarada')
+                        return
+                else: #Es un numero
+                    tipoDatoDer = self.idVer(nombrePrimero)
+                    self.listaTipoDatos.append(tipoDatoDer)
+                    print(f'Constante encontrada: {nombrePrimero}, Tipo: {tipoDatoDer}')
+
+        # else: 
+        #     nombreFuncion = primero.getChild(0).getText()
+        #     funcion = self.tablaDeSimbolos.buscarFuncionGlobal(nombreFuncion)
+        #     if funcion:
+        #         tipoDatoDer = funcion.tipoDato
+        #     else:
+        #         print('La funcion "' + nombreFuncion + '" no esta declarada')
+
+                    
+
+ 
+                    
+                        
+                        
+
+                        
+
+
+
+
+
+
+
     def exitAsignacion(self, ctx: compiladoresParser.AsignacionContext):
         nombreVariable = ctx.getChild(0).getText()
         print('Analizando variable: "' + nombreVariable + '"\n')
-        numHijos = ctx.getChildCount()
         variableGlobal = self.tablaDeSimbolos.buscarGlobal(nombreVariable) 
         variableLocal = self.tablaDeSimbolos.buscarLocal(nombreVariable) 
         tipoDatoIzq = None
-        tipoDatoDer = None
         if variableLocal is not None:
             print('La variable "' + nombreVariable + '" se encontró a nivel local')
             variableLocal.inicializado = 1  # Acceso directo al objeto
@@ -92,55 +159,15 @@ class Escucha (compiladoresListener) :
         else:
             print('+++ERROR SEMANTICO: La variable "' + nombreVariable + '" no esta declarada+++')
         #CAMBIAR ATRIBUTO USADO A 1
-        nombreVariableUsada = ctx.getChild(2).getText()
-        partes = re.split("[+\-*]",nombreVariableUsada)
-        for i in partes:
-            if i.isdigit(): #Si es un numero
-                print(str(tipoDatoIzq))
-                tipoDatoDer ='TipoDato.INT'
-                if tipoDatoDer != str(tipoDatoIzq):
-                    if str(tipoDatoIzq) != 'TipoDato.FLOAT':
-                        print("Error Semantico: Formato de variable incompatible")
-                        if variableGlobal is not None: 
-                            variableGlobal.inicializado=0
-                        elif variableLocal is not None: 
-                            variableLocal.inicializado=0
-            # elif i.isalpha() and "'" in i: #Si es un char
-            #     tipoDatoDer='TipoDato.CHAR'
-            #     if tipoDatoDer != str(tipoDatoIzq):
-            #         print("Error Semantico: Formato de variable incompatible")
-            #         if variableGlobal is not None: 
-            #                 variableGlobal.inicializado=0
-            #         elif variableLocal is not None: 
-            #                 variableLocal.inicializado=0
-            else:  # Si es una variable
-                variableUsadaGlobal = self.tablaDeSimbolos.buscarGlobal(i)
-                variableUsadaLocal = self.tablaDeSimbolos.buscarLocal(i)
-                # Si encontramos la variable del lado derecho del ASIG, cambiar 'usada' a 1
-                if variableUsadaLocal is not None:
-                    if variableUsadaLocal.inicializado == 1:
-                        variableUsadaLocal.usado = 1
-                        tipoDatoDer = variableUsadaLocal.tipoDato
-                    else:
-                        print('ERROR SEMANTICO: La variable: "'+i+'" no esta inicializada')
-                        tipoDatoDer = variableUsadaLocal.tipoDato
-                elif variableUsadaGlobal is not None:
-                    if variableUsadaGlobal.inicializado == 1:        
-                        variableUsadaGlobal.usado = 1
-                        tipoDatoDer = variableUsadaGlobal.tipoDato
-                    else:
-                        print('ERROR SEMANTICO: La variable: "'+i+'" no esta inicializada')
-                        tipoDatoDer=variableUsadaGlobal.tipoDato       
-                if tipoDatoDer != tipoDatoIzq:
-                    if variableUsadaGlobal is not None:
-                        variableUsadaGlobal.usado = 0
-                        variableGlobal.inicializado = 0
-                    elif variableUsadaLocal is not None:
-                        variableUsadaLocal.usado = 0
-                        variableLocal.inicializado = 0
-                    print("ERROR SEMANTICO: Incompatibilidad de datos")
+        for tipoDatoDer in self.listaTipoDatos:
+            if str(tipoDatoIzq) != tipoDatoDer:
+                if (str(tipoDatoIzq) == 'TipoDato.INT' and tipoDatoDer == 'TipoDato.FLOAT') or (str(tipoDatoIzq) == 'TipoDato.FLOAT' and tipoDatoDer == 'TipoDato.INT'):
+                    print('WARNING: Incompatibilidad de datos pero será casteado')
+                    print(tipoDatoDer)
+                else:
+                    print('ERROR SEMANTICO: Incompatibilidad de datos')
         self.tablaDeSimbolos.controlarUsados()
-    
+        self.listaTipoDatos.clear()
     # def enterDeclAsig(self, ctx: compiladoresParser.DeclAsigContext):
     #    print("### Entrando a una declaración de asignación ###\n")
   

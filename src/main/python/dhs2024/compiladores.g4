@@ -174,7 +174,7 @@ t :   MULT factor t  //esto es jerarquico, las multiplicaciones e hacen antes y 
     ;
 factor : NUMERO  //parentesis es factor
       | ID
-      | PA or PC
+      | PA exp PC
       ;
 
 //iwhile : WHILE PA ID PC instruccion ;//llave es instruccion compuesta, despues del while una instruccion
@@ -200,5 +200,9 @@ decremento : ID DECR
 //fin for
 
 //if
-iif : IF PA opal PC bloque ; //Modifique el nombre con una i adelante para que señale instruccion
-ielse : ELSE bloque ;        //y tambien los modifique donde se los usaba
+iif : IF PA opal PC bloque 
+    | IF PA opal PC instruccion
+    ; 
+ielse : ELSE bloque 
+      | ELSE instruccion
+      ;        //y tambien los modifique donde se los usaba
