@@ -62,6 +62,24 @@ class compiladoresListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by compiladoresParser#declaracionArreglos.
+    def enterDeclaracionArreglos(self, ctx:compiladoresParser.DeclaracionArreglosContext):
+        pass
+
+    # Exit a parse tree produced by compiladoresParser#declaracionArreglos.
+    def exitDeclaracionArreglos(self, ctx:compiladoresParser.DeclaracionArreglosContext):
+        pass
+
+
+    # Enter a parse tree produced by compiladoresParser#declAsig.
+    def enterDeclAsig(self, ctx:compiladoresParser.DeclAsigContext):
+        pass
+
+    # Exit a parse tree produced by compiladoresParser#declAsig.
+    def exitDeclAsig(self, ctx:compiladoresParser.DeclAsigContext):
+        pass
+
+
     # Enter a parse tree produced by compiladoresParser#prototipoFuncion.
     def enterPrototipoFuncion(self, ctx:compiladoresParser.PrototipoFuncionContext):
         pass
@@ -131,6 +149,15 @@ class compiladoresListener(ParseTreeListener):
 
     # Exit a parse tree produced by compiladoresParser#asignacion.
     def exitAsignacion(self, ctx:compiladoresParser.AsignacionContext):
+        pass
+
+
+    # Enter a parse tree produced by compiladoresParser#arreglo.
+    def enterArreglo(self, ctx:compiladoresParser.ArregloContext):
+        pass
+
+    # Exit a parse tree produced by compiladoresParser#arreglo.
+    def exitArreglo(self, ctx:compiladoresParser.ArregloContext):
         pass
 
 

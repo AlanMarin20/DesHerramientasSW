@@ -8,6 +8,10 @@ PA: '(';
 PC: ')';
 LLA: '{';
 LLC: '}';
+CA: '[';
+CC: ']';
+COMs: '\''; 
+COMd: '"';
 PYC: ';';
 COMA: ',';
 SUMA : '+';
@@ -32,8 +36,8 @@ POT: '^';
 DESPizq: '<<'; 
 DESPder: '>>'; 
 
-
 NUMERO : DIGITO+ ;
+LETRAchar : LETRA ;
 
 INT:'int';
 CHAR:'char';
@@ -86,7 +90,8 @@ instrucciones : instruccion instrucciones //es una instruccion con mas instrucci
                 ;
 
 instruccion: declaracion PYC 
-            // | declAsig PYC 
+            | declaracionArreglos PYC
+            | declAsig PYC 
             | iwhile
             | ifor
             | iif
@@ -99,12 +104,14 @@ instruccion: declaracion PYC
             | callFunction PYC
             ;
 
-declaracion : tipodato ID (COMA ID)*; // int x, y, z
-// declAsig : declaracion ASIG opal //int x=chule+bauti
-//        | declaracion ASIG callFunction
-//        ; 
+declaracion : tipodato ID (COMA ID)*;// int x, y, z
+            
+declaracionArreglos : tipodato arreglo // char arreglo[] y char arreglo[] (con esto cadenas)
+                    | tipodato (MULT) ID;// char *arreglo (ESTE VA A FALLAR EN LA declAsig)
 
-// declAsigNuevo : tipodato ID ASIG opal (COMA tipodato ID ASIG opal)* (COMA)
+declAsig : declaracion ASIG opal //int x = 3 int x = a
+          | declaracionArreglos ASIG COMd LETRAchar COMd // char cadena[5] = "c"
+          | declaracionArreglos ASIG LLA NUMERO (COMA NUMERO)* LLC; // int arreglo = {2,3}
 
 ///////////////////// FUNCION
 prototipoFuncion : tipodato ID PA (parFunc)? PC PYC ; //Este es el prototipo con ;
@@ -127,12 +134,16 @@ lista_envPar : COMA opal lista_envPar | ; // Lista de parametros separados por c
 
 ////////////////////// FIN FUNCION
 asignacion: ID ASIG opal 
+          | ID ASIG COMs LETRAchar COMs// letra = 'a'
+          | arreglo ASIG COMs LETRAchar COMs// cadena[5] = 'a'
+          | arreglo ASIG NUMERO //arreglo[5] = 2
           // | ID opComp ASIG opal //x+=operacion
           | ID ASIG callFunction
           //| incremento
           | decremento
           ;
 
+arreglo: ID CA NUMERO CC ;
 opal: or;  //completar una operacion aridmeticas, buscar en cppreference, agregamoss operaciones relacionales
 
 or : and o ;
