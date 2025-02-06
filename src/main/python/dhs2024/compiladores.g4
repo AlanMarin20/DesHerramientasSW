@@ -37,7 +37,7 @@ DESPizq: '<<';
 DESPder: '>>'; 
 
 NUMERO : DIGITO+ ;
-LETRAchar : LETRA ;
+//LETRAchar : LETRA ;
 
 INT:'int';
 CHAR:'char';
@@ -110,7 +110,7 @@ declaracionArreglos : tipodato ID CA NUMERO CC // char arreglo[] y char arreglo[
                     | tipodato (MULT) ID;// char *arreglo (ESTE VA A FALLAR EN LA declAsig)
 
 declAsig : declaracion ASIG opal //int x = 3 int x = a
-          | declaracionArreglos ASIG COMd LETRAchar COMd // char cadena[5] = "c"
+          | declaracionArreglos ASIG COMd opal COMd // char cadena[5] = "c"
           | declaracionArreglos ASIG LLA NUMERO (COMA NUMERO)* LLC; // int arreglo = {2,3}
 
 ///////////////////// FUNCION
@@ -134,8 +134,8 @@ lista_envPar : COMA opal lista_envPar | ; // Lista de parametros separados por c
 
 ////////////////////// FIN FUNCION
 asignacion: ID ASIG opal 
-          | ID ASIG COMs LETRAchar COMs// letra = 'a'
-          | ID CA NUMERO CC ASIG COMs LETRAchar COMs// cadena[5] = 'a'
+          | ID ASIG COMs opal COMs// letra = 'a'
+          | ID CA NUMERO CC ASIG COMs opal COMs// cadena[5] = 'a'
           | ID CA NUMERO CC ASIG NUMERO //arreglo[5] = 2
           // | ID opComp ASIG opal //x+=operacion
           | ID ASIG callFunction
@@ -185,6 +185,7 @@ t :   MULT factor t  //esto es jerarquico, las multiplicaciones e hacen antes y 
 factor : NUMERO  //parentesis es factor
       | ID
       | PA exp PC
+      | LETRA+
       ;
 
 //iwhile : WHILE PA ID PC instruccion ;//llave es instruccion compuesta, despues del while una instruccion
