@@ -182,32 +182,61 @@ class Escucha (compiladoresListener) :
     def enterDeclAsig(self, ctx: compiladoresParser.DeclAsigContext):
        print("#### Entrando a una declaración de asignación ####\n")
   
+
     def exitDeclAsig(self, ctx: compiladoresParser.DeclAsigContext):
         print("#### Saliendo de declAsig ####")
         nombreVariables = []
-        if ctx.getChild(0) == compiladoresParser.DeclaracionContext :
-            tipoVariable = ctx.compiladoresParser.DeclaracionContext.getChild(0)
-            print ('tipo de dato: ' + tipoVariable + '\n')
-            nombreVariables.append(ctx.compiladoresParser.DeclaracionContext.getChild(1)) 
-        elif ctx.getChild(0) == compiladoresParser.DeclaracionArreglosContext :
-            tipoVariable = ctx.compiladoresParser.DeclaracionArreglosContext.getChild(0)
-            print ('tipo de dato: ' + tipoVariable + '\n')
-            if ctx.compiladoresParser.DeclaracionArreglosContext.getChild(1).getText() == "*" :
+        tipoVariable = ctx.getChild(0).getChild(0).getText() 
+        tipoIzq = "TipoDato." + tipoVariable.upper() #Esto es el tipo de dato Izquierda en String, ej: TipoDato.INT
+        nombreVariable = ctx.getChild(0).getChild(1).getText()
+        if isinstance(ctx.getChild(0), compiladoresParser.DeclaracionContext):
+            # print('ENTRA declaracion comun')
+            declCtx = ctx.getChild(0)  # Obtener el nodo de DeclaracionContext
+            tipoVariable = declCtx.getChild(0).getText() 
+            # print ('tipo de dato: ' + tipoVariable + '\n') 
+            nombreVariable = declCtx.getChild(1).getText()
+            # print ('nombre variable:" ' + nombreVariable + '"\n') 
+            nombreVariables.append(nombreVariable) 
+        elif isinstance(ctx.getChild(0), compiladoresParser.DeclaracionArreglosContext):
+            # print('ENTRA declaracion arreglos')
+            declArrCtx = ctx.getChild(0)  # Obtener el nodo de DeclaracionArregloContext
+            if declArrCtx.getChild(1).getText() == '*':
                 print("NO SE PUEDE ASIGNAR UN ARREGLO CON ESA PINTA (*arreglo)")
-            else: 
-                nombreVariables.append(ctx.compiladoresParser.DeclaracionArreglosContext.getChild(1))
-        
+            else:
+                tipoVariable = declArrCtx.getChild(0).getText() 
+                # print ('tipo de dato: ' + tipoVariable + '\n') 
+                nombreVariable = declArrCtx.getChild(1).getText()
+                # print ('nombre variable:" ' + nombreVariable + '"\n') 
+                nombreVariables.append(nombreVariable) 
+
+
+        if ctx.getChild(2).getChildCount()==1: #Esto significa que "int a = ESTA PARTE" tiene unicamente un num/var
+            if ctx.getChild(2).getChild(0).getText().isdigit(): #Si es un int
+                tipoDer="TipoDato.INT"
+            if ctx.getChild(2).getChild(0).getText().replace('.', '', 1).isdigit(): #Si es un float
+                tipoDer="TipoDato.FLOAT"
+            if self.tablaDeSimbolos.buscarGlobal(ctx.getChild(2).getChild(0).getText()) is not None: #Si es una variable
+                tipoDer = self.tablaDeSimbolos.buscarGlobal(ctx.getChild(2).getChild(0).getText()).tipoDato
+            if self.tablaDeSimbolos.buscarLocal(ctx.getChild(2).getChild(0).getText()) is not None: #Si es una variable
+                tipoDer = self.tablaDeSimbolos.buscarLocal(ctx.getChild(2).getChild(0).getText()).tipoDato   
+            print("-----------")
+            print(tipoIzq)
+            print(tipoDer)
+            if str(tipoDer) != tipoIzq: #Comparacion de tipo de datos, usamos str para castera tipoDer a un string y poder compararlos bien
+                if (str(tipoDer) == 'TipoDato.INT' and tipoIzq == 'TipoDato.FLOAT') or (str(tipoDer) == 'TipoDato.FLOAT' and tipoIzq == 'TipoDato.INT'):
+                    print('WARNING: Incompatibilidad de datos pero será casteado')
+                else:
+                    print('ERROR SEMANTICO: Incompatibilidad de datos')
+
         for nombreVariable in nombreVariables:
             if (self.tablaDeSimbolos.buscarGlobal(nombreVariable)) is not None:
-                print('+++ERROR SEMANTICO: La variable' + nombreVariable + 'ya existe a nivel global+++')
+                print('+++ERROR SEMANTICO: La variable ' + nombreVariable + 'ya existe a nivel global+++')
             elif (self.tablaDeSimbolos.buscarLocal(nombreVariable)) is not None:
-               print('+++ERROR SEMANTICO: La variable' + nombreVariable + 'ya existe a nivel local+++')
+               print('+++ERROR SEMANTICO: La variable ' + nombreVariable + ' ya existe a nivel local+++')
             else:
                print('La variable "' + nombreVariable + '" se agregó correctamente a la tabla de símbolos.')
                self.tablaDeSimbolos.addIdentificador(nombreVariable, tipoVariable)
         
-#^^^^^^FALTA SEGUIR ACA CON EL TRATAMIENTO DEL DATO^^^^^
-
 
 #-------------------------------------------
 #----FUNCION----
@@ -423,4 +452,3 @@ class Escucha (compiladoresListener) :
     def enterEveryRule(self, ctx):
         self.numNodos += 1
         self.numNodosTotal += 1
-    
