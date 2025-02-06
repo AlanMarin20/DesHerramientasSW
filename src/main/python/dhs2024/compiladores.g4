@@ -215,4 +215,4 @@ iif : IF PA opal PC bloque
     ; 
 ielse : ELSE bloque 
       | ELSE instruccion
-      ;       
+      ;        //y tambien los modifique donde se los usaba

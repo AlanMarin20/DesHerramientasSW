@@ -228,14 +228,6 @@ class Escucha (compiladoresListener) :
                 else:
                     print('ERROR SEMANTICO: Incompatibilidad de datos')
 
-        for nombreVariable in nombreVariables:
-            if (self.tablaDeSimbolos.buscarGlobal(nombreVariable)) is not None:
-                print('+++ERROR SEMANTICO: La variable ' + nombreVariable + 'ya existe a nivel global+++')
-            elif (self.tablaDeSimbolos.buscarLocal(nombreVariable)) is not None:
-               print('+++ERROR SEMANTICO: La variable ' + nombreVariable + ' ya existe a nivel local+++')
-            else:
-               print('La variable "' + nombreVariable + '" se agregó correctamente a la tabla de símbolos.')
-               self.tablaDeSimbolos.addIdentificador(nombreVariable, tipoVariable)
         
 
 #-------------------------------------------
