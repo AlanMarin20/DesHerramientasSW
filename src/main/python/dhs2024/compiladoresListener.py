@@ -152,15 +152,6 @@ class compiladoresListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by compiladoresParser#arreglo.
-    def enterArreglo(self, ctx:compiladoresParser.ArregloContext):
-        pass
-
-    # Exit a parse tree produced by compiladoresParser#arreglo.
-    def exitArreglo(self, ctx:compiladoresParser.ArregloContext):
-        pass
-
-
     # Enter a parse tree produced by compiladoresParser#opal.
     def enterOpal(self, ctx:compiladoresParser.OpalContext):
         pass

@@ -106,7 +106,7 @@ instruccion: declaracion PYC
 
 declaracion : tipodato ID (COMA ID)*;// int x, y, z
             
-declaracionArreglos : tipodato arreglo // char arreglo[] y char arreglo[] (con esto cadenas)
+declaracionArreglos : tipodato ID CA NUMERO CC // char arreglo[] y char arreglo[] (con esto cadenas)
                     | tipodato (MULT) ID;// char *arreglo (ESTE VA A FALLAR EN LA declAsig)
 
 declAsig : declaracion ASIG opal //int x = 3 int x = a
@@ -135,15 +135,14 @@ lista_envPar : COMA opal lista_envPar | ; // Lista de parametros separados por c
 ////////////////////// FIN FUNCION
 asignacion: ID ASIG opal 
           | ID ASIG COMs LETRAchar COMs// letra = 'a'
-          | arreglo ASIG COMs LETRAchar COMs// cadena[5] = 'a'
-          | arreglo ASIG NUMERO //arreglo[5] = 2
+          | ID CA NUMERO CC ASIG COMs LETRAchar COMs// cadena[5] = 'a'
+          | ID CA NUMERO CC ASIG NUMERO //arreglo[5] = 2
           // | ID opComp ASIG opal //x+=operacion
           | ID ASIG callFunction
           //| incremento
           | decremento
           ;
 
-arreglo: ID CA NUMERO CC ;
 opal: or;  //completar una operacion aridmeticas, buscar en cppreference, agregamoss operaciones relacionales
 
 or : and o ;

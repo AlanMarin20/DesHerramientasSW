@@ -46,7 +46,7 @@ class Escucha (compiladoresListener) :
         pass
 
     def exitDeclaracion(self, ctx:compiladoresParser.DeclaracionContext):            
-        #print('####Sali de declaracion####')
+        # print('####Sali de declaracion####')
         tipoVariable = ctx.getChild(0).getText()
         print ('tipo de dato: ' + tipoVariable + '\n')
         nombreVariables = []
@@ -68,7 +68,31 @@ class Escucha (compiladoresListener) :
             else:
                print('La variable "' + nombreVariable + '" se agregó correctamente a la tabla de símbolos.')
                self.tablaDeSimbolos.addIdentificador(nombreVariable, tipoVariable)
-        
+        # print('####Sali de declaracion####')
+    
+    def enterDeclaracionArreglos(self, ctx):
+        # print('####Entre a la declaracion de un arreglo####')
+        pass
+
+    def exitDeclaracionArreglos(self, ctx):
+        # print('####Sali de la declaracion de un arreglo####')
+        tipoVariable = ctx.getChild(0).getText()
+        print ('tipo de dato: ' + tipoVariable + '\n')
+        nombreVariables = []
+        if ctx.getChild(1).getText() == "*":
+            nombreVariables.append(ctx.getChild(2).getText()) 
+        else:
+            nombreVariables.append(ctx.getChild(1).getText()) 
+        for nombreVariable in nombreVariables:
+            if (self.tablaDeSimbolos.buscarGlobal(nombreVariable)) is not None:
+                print('+++ERROR SEMANTICO: La variable' + nombreVariable + 'ya existe a nivel global+++')
+            elif (self.tablaDeSimbolos.buscarLocal(nombreVariable)) is not None:
+               print('+++ERROR SEMANTICO: La variable' + nombreVariable + 'ya existe a nivel local+++')
+            else:
+               print('La variable "' + nombreVariable + '" se agregó correctamente a la tabla de símbolos.')
+               self.tablaDeSimbolos.addIdentificador(nombreVariable, tipoVariable)
+
+
     def enterAsignacion(self, ctx: compiladoresParser.AsignacionContext):
         pass
         #print('### ASIGNACION ###')
@@ -127,21 +151,7 @@ class Escucha (compiladoresListener) :
         #     else:
         #         print('La funcion "' + nombreFuncion + '" no esta declarada')
 
-                    
-
- 
-                    
-                        
-                        
-
-                        
-
-
-
-
-
-
-
+                
     def exitAsignacion(self, ctx: compiladoresParser.AsignacionContext):
         nombreVariable = ctx.getChild(0).getText()
         print('Analizando variable: "' + nombreVariable + '"\n')
@@ -168,21 +178,36 @@ class Escucha (compiladoresListener) :
                     print('ERROR SEMANTICO: Incompatibilidad de datos')
         self.tablaDeSimbolos.controlarUsados()
         self.listaTipoDatos.clear()
-    # def enterDeclAsig(self, ctx: compiladoresParser.DeclAsigContext):
-    #    print("### Entrando a una declaración de asignación ###\n")
+
+    def enterDeclAsig(self, ctx: compiladoresParser.DeclAsigContext):
+       print("#### Entrando a una declaración de asignación ####\n")
   
-    # def exitDeclAsig(self, ctx: compiladoresParser.DeclAsigContext):
-    #    #nombre = ctx.getChild(0).getText()
-    #    #nombreVariable = nombre [3:]
-    #    #tipo = ctx.getChild(0).getText()
-    #    #tipoVariable=tipo[0:3]
-    #    if self.tablaDeSimbolos.buscarGlobal(nombreVariable)==1:
-    #        print("La variable "+nombreVariable+" ya esta usada a nivel GLOBAL, debes escoger  otro nombre")
-    #    elif self.tablaDeSimbolos.buscarLocal(nombreVariable)==1:
-    #        print("La variable "+nombreVariable+" ya esta usada a nivel LOCAL, debes escoger  otro nombre")   
-    #    else:
-    #        print("La variable "+nombreVariable+" se agrego correctamente a la tabla de simbolos")
-    #        self.tablaDeSimbolos.addIdentificador(nombreVariable, tipoVariable) 
+    def exitDeclAsig(self, ctx: compiladoresParser.DeclAsigContext):
+        print("#### Saliendo de declAsig ####")
+        nombreVariables = []
+        if ctx.getChild(0) == compiladoresParser.DeclaracionContext :
+            tipoVariable = ctx.compiladoresParser.DeclaracionContext.getChild(0)
+            print ('tipo de dato: ' + tipoVariable + '\n')
+            nombreVariables.append(ctx.compiladoresParser.DeclaracionContext.getChild(1)) 
+        elif ctx.getChild(0) == compiladoresParser.DeclaracionArreglosContext :
+            tipoVariable = ctx.compiladoresParser.DeclaracionArreglosContext.getChild(0)
+            print ('tipo de dato: ' + tipoVariable + '\n')
+            if ctx.compiladoresParser.DeclaracionArreglosContext.getChild(1).getText() == "*" :
+                print("NO SE PUEDE ASIGNAR UN ARREGLO CON ESA PINTA (*arreglo)")
+            else: 
+                nombreVariables.append(ctx.compiladoresParser.DeclaracionArreglosContext.getChild(1))
+        
+        for nombreVariable in nombreVariables:
+            if (self.tablaDeSimbolos.buscarGlobal(nombreVariable)) is not None:
+                print('+++ERROR SEMANTICO: La variable' + nombreVariable + 'ya existe a nivel global+++')
+            elif (self.tablaDeSimbolos.buscarLocal(nombreVariable)) is not None:
+               print('+++ERROR SEMANTICO: La variable' + nombreVariable + 'ya existe a nivel local+++')
+            else:
+               print('La variable "' + nombreVariable + '" se agregó correctamente a la tabla de símbolos.')
+               self.tablaDeSimbolos.addIdentificador(nombreVariable, tipoVariable)
+        
+#^^^^^^FALTA SEGUIR ACA CON EL TRATAMIENTO DEL DATO^^^^^
+
 
 #-------------------------------------------
 #----FUNCION----
