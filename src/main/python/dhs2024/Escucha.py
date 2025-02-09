@@ -220,13 +220,13 @@ class Escucha (compiladoresListener) :
             if self.tablaDeSimbolos.buscarLocal(ctx.getChild(2).getChild(0).getText()) is not None: #Si es una variable
                 tipoDer = self.tablaDeSimbolos.buscarLocal(ctx.getChild(2).getChild(0).getText()).tipoDato   
             print("-----------")
-            print(tipoIzq)
-            print(tipoDer)
             if str(tipoDer) != tipoIzq: #Comparacion de tipo de datos, usamos str para castera tipoDer a un string y poder compararlos bien
                 if (str(tipoDer) == 'TipoDato.INT' and tipoIzq == 'TipoDato.FLOAT') or (str(tipoDer) == 'TipoDato.FLOAT' and tipoIzq == 'TipoDato.INT'):
                     print('WARNING: Incompatibilidad de datos pero será casteado')
                 else:
                     print('ERROR SEMANTICO: Incompatibilidad de datos')
+            
+            
 
         
 

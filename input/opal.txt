@@ -1,3 +1,4 @@
 int main(){
-    char x[5] = "a";
+    int variable ; 
+    variable = 5 + 2;
 }

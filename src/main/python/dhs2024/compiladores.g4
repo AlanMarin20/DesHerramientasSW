@@ -37,7 +37,6 @@ DESPizq: '<<';
 DESPder: '>>'; 
 
 NUMERO : DIGITO+ ;
-//LETRAchar : LETRA ;
 
 INT:'int';
 CHAR:'char';
@@ -110,8 +109,11 @@ declaracionArreglos : tipodato ID CA NUMERO CC // char arreglo[] y char arreglo[
                     | tipodato (MULT) ID;// char *arreglo (ESTE VA A FALLAR EN LA declAsig)
 
 declAsig : declaracion ASIG opal //int x = 3 int x = a
-          | declaracionArreglos ASIG COMd opal COMd // char cadena[5] = "c"
-          | declaracionArreglos ASIG LLA NUMERO (COMA NUMERO)* LLC; // int arreglo = {2,3}
+          | declaracionArreglos ASIG COMA opal COMA // char cadena[5] = "c"
+          | declaracionArreglos ASIG LLA NUMERO (COMA NUMERO)* LLC // int arreglo = {2,3}
+          | declaracion COMA asignacion (COMA opal)* // int x, y=10
+          | declaracion ASIG opal COMA asignacion (COMA opal)* // int x=10,y;
+          ;
 
 ///////////////////// FUNCION
 prototipoFuncion : tipodato ID PA (parFunc)? PC PYC ; //Este es el prototipo con ;
@@ -185,7 +187,7 @@ t :   MULT factor t  //esto es jerarquico, las multiplicaciones e hacen antes y 
 factor : NUMERO  //parentesis es factor
       | ID
       | PA exp PC
-      | LETRA+
+      // | LETRA+
       ;
 
 //iwhile : WHILE PA ID PC instruccion ;//llave es instruccion compuesta, despues del while una instruccion
