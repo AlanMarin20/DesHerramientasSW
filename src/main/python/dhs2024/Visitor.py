@@ -88,45 +88,123 @@ class Visitor (compiladoresVisitor):
         if isinstance(ctx.getChild(0), compiladoresParser.OrContext):  
             print("Entra a un Or")
             return self.visitOr(ctx.getChild(0))  
-
-        return self.visitChildren(ctx)
+        else:
+            resultado = self.visitChildren(ctx)
+            if resultado is None:
+                print(f"+++ Advertencia: visit{ctx.__class__.__name__} devolvió None +++")
+            return resultado
 
     def visitOr(self, ctx):
         print("Llama al visitOr")
         if isinstance(ctx.getChild(0), compiladoresParser.OContext):
             print("Entra a un O")
             return self.visitO(ctx.getChild(0))  # Devuelve el resultado
+        elif isinstance(ctx.getChild(0), compiladoresParser.AndContext):
+            print("Entra a un And")
+            return self.visitAnd(ctx.getChild(0))  # Devuelve el resultado
         else:
-            return self.visitChildren(ctx)
-    
+            resultado = self.visitChildren(ctx)
+            if resultado is None:
+                print(f"+++ Advertencia: visit{ctx.__class__.__name__} devolvió None +++")
+            return resultado
+                
     def visitO(self, ctx):
         print("Llama al visitO")
-        if isinstance(ctx.getChild(0), compiladoresParser.ExpContext):
-            print("Entra a una exp")
-            return self.visitExp(ctx.getChild(0))  # Devuelve el resultado
-        else:
-            return self.visitChildren(ctx)
+        if ctx is None or ctx.getChildCount() == 0:
+            print("+++ ERROR: ctx en visitO es None o no tiene hijos +++")
+        else: 
+            if isinstance(ctx.getChild(0), compiladoresParser.ExpContext):
+                print("Entra a una exp")
+                return self.visitExp(ctx.getChild(0))  # Devuelve el resultado
+            else:
+                resultado = self.visitChildren(ctx)
+                if resultado is None:
+                    print(f"+++ Advertencia: visit{ctx.__class__.__name__} devolvió None +++")
+                return resultado
     
+    def visitAnd(self, ctx):
+        print(f"Cantidad de hijos en And: {ctx.getChildCount()}")
+        for i in range(ctx.getChildCount()):
+            print(f"  Hijo {i}: {ctx.getChild(i).getText()}")
+
+        resultado = self.visit(ctx.getChild(0))
+
+        i = 1
+        while i < ctx.getChildCount():
+            if i+1 >= ctx.getChildCount():
+                print("+++ ERROR: Se intentó acceder a un hijo fuera de rango en visitAnd +++")
+                break
+            
+            operador = ctx.getChild(i).getText()
+            siguiente_exp = self.visit(ctx.getChild(i+1))
+            
+            if siguiente_exp is None:
+                print(f"+++ ERROR: visitExp devolvió None en visitAnd +++")
+                break
+
+            print(f"Operación: {resultado} {operador} {siguiente_exp}")
+            resultado = f"{resultado} {operador} {siguiente_exp}"
+
+            i += 2
+
+        return resultado
+
     def visitExp(self, ctx):
         print("Llama al visitExp")
         if isinstance(ctx.getChild(0), compiladoresParser.TermContext):
             print("Entra a un term")
             return self.visitTerm(ctx.getChild(0))  # Devuelve el resultado
         else:
-            return self.visitChildren(ctx)
+            resultado = self.visitChildren(ctx)
+            if resultado is None:
+                print(f"+++ Advertencia: visit{ctx.__class__.__name__} devolvió None +++")
+            return resultado
     
     def visitTerm(self, ctx):
-        print("Llama al visitTerm")
-        if isinstance(ctx.getChild(0), compiladoresParser.FactorContext):
-            print("Entra a un factor")
-            return self.visitFactor(ctx.getChild(0))  # Devuelve el resultado
-        else:
-            return self.visitChildren(ctx)
+        print(f"Cantidad de hijos en Term: {ctx.getChildCount()}")
+        for i in range(ctx.getChildCount()):
+            print(f"  Hijo {i}: {ctx.getChild(i).getText()}")
+
+        if ctx.getChildCount() == 0:
+            print("+++ ERROR: visitTerm recibió un nodo vacío +++")
+            return ""
+
+        resultado = self.visit(ctx.getChild(0))  # Visita el primer factor
+
+        i = 1
+        while i < ctx.getChildCount():
+            if i+1 >= ctx.getChildCount():
+                print("+++ ERROR: Se intentó acceder a un hijo fuera de rango en visitTerm +++")
+                break  # Salimos del bucle si no hay suficientes hijos
+            
+            operador = ctx.getChild(i).getText()  # Puede ser "*" o "/"
+            siguiente_factor = self.visit(ctx.getChild(i+1))
+            
+            if siguiente_factor is None:
+                print(f"+++ ERROR: visitFactor devolvió None en visitTerm +++")
+                break
+
+            print(f"Operación: {resultado} {operador} {siguiente_factor}")
+            resultado = f"{resultado} {operador} {siguiente_factor}"
+
+            i += 2  # Saltar al siguiente operador
+
+        return resultado
     
     def visitFactor(self, ctx):
-        print("Llego al factor")
-        return super().visitFactor(ctx)
-    
+        print("Entra a un factor")
+        
+        if ctx.getChildCount() == 1:  # Si el factor es un número o una variable
+            valor = ctx.getChild(0).getText()
+            print(f"Factor encontrado: {valor}")
+            return valor  # Devuelve el valor del número o variable
+
+        elif ctx.getChildCount() == 3:  # Si es una expresión entre paréntesis (expr)
+            return self.visit(ctx.getChild(1))  # Evalúa lo que hay dentro
+
+        print("+++ ERROR: No se pudo reconocer el factor +++")
+        return ""
+            
 
     def visitAsignacion(self, ctx: compiladoresParser.AsignacionContext):
         nombreVariable = ctx.getChild(0).getText()
