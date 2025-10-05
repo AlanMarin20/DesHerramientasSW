@@ -169,21 +169,16 @@ c : MAYOR exp c
   |
   ;
   
-exp : term e ; //e es una expresion prima
+exp : term ((SUMA | RESTA)factor)* ; //e es una expresion prima
 
-term : factor t; //t es termino prima, es una multiplicacion y viene un factor
+term : factor ((MULT | DIV | MOD)factor)*
+      |factor ((SUMA | RESTA)factor)*;
 
-e : SUMA term e // a partir del segundo termino
-  | RESTA term e
-  | //regla vacia 
-  ;
+// e : SUMA term e // a partir del segundo termino
+//   | RESTA term e
+//   | //regla vacia 
+//   ;
 
-
-t :   MULT factor t  //esto es jerarquico, las multiplicaciones e hacen antes y hacen que este por abajo del arbol
-    | DIV factor t
-    | MOD factor t
-    |
-    ;
 factor : NUMERO  //parentesis es factor
       | ID
       | PA exp PC

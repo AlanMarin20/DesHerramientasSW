@@ -1,4 +1,4 @@
 int main(){
     int variable ; 
-    variable = 5 + 2;
+    variable = 5 * 2;
 }

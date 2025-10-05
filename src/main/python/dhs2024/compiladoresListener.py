@@ -233,24 +233,6 @@ class compiladoresListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by compiladoresParser#e.
-    def enterE(self, ctx:compiladoresParser.EContext):
-        pass
-
-    # Exit a parse tree produced by compiladoresParser#e.
-    def exitE(self, ctx:compiladoresParser.EContext):
-        pass
-
-
-    # Enter a parse tree produced by compiladoresParser#t.
-    def enterT(self, ctx:compiladoresParser.TContext):
-        pass
-
-    # Exit a parse tree produced by compiladoresParser#t.
-    def exitT(self, ctx:compiladoresParser.TContext):
-        pass
-
-
     # Enter a parse tree produced by compiladoresParser#factor.
     def enterFactor(self, ctx:compiladoresParser.FactorContext):
         pass

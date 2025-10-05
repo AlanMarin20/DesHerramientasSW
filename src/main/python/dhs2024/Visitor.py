@@ -130,21 +130,18 @@ class Visitor (compiladoresVisitor):
         resultado = self.visit(ctx.getChild(0))
 
         i = 1
-        while i < ctx.getChildCount():
-            if i+1 >= ctx.getChildCount():
-                print("+++ ERROR: Se intentó acceder a un hijo fuera de rango en visitAnd +++")
-                break
-            
-            operador = ctx.getChild(i).getText()
-            siguiente_exp = self.visit(ctx.getChild(i+1))
-            
-            if siguiente_exp is None:
-                print(f"+++ ERROR: visitExp devolvió None en visitAnd +++")
+        while i + 1 < ctx.getChildCount():
+            operador = ctx.getChild(i).getText().strip()
+            siguiente_ctx = ctx.getChild(i + 1)
+
+            if siguiente_ctx.getText().strip() == "":
+                print("+++ WARNING: Nodo vacío en visitAnd, se ignora +++")
                 break
 
-            print(f"Operación: {resultado} {operador} {siguiente_exp}")
-            resultado = f"{resultado} {operador} {siguiente_exp}"
+            siguiente = self.visit(siguiente_ctx)
 
+            print(f"Operación: {resultado} {operador} {siguiente}")
+            resultado = f"{resultado} {operador} {siguiente}"
             i += 2
 
         return resultado
@@ -161,57 +158,38 @@ class Visitor (compiladoresVisitor):
             return resultado
     
     def visitTerm(self, ctx):
-        print(f"Cantidad de hijos en Term: {ctx.getChildCount()}")
-        for i in range(ctx.getChildCount()):
-            print(f"  Hijo {i}: {ctx.getChild(i).getText()}")
-
-        if ctx.getChildCount() == 0:
-            print("+++ ERROR: visitTerm recibió un nodo vacío +++")
+        print("Entra a un term")
+        hijos = ctx.getChildCount()
+        print(f"Cantidad de hijos en Term: {hijos}")
+        
+        if hijos >= 1:
+            resultado = self.visit(ctx.getChild(0))
+            return resultado if resultado is not None else ""
+        else:
+            print("+++ ERROR: Term sin hijos +++")
             return ""
 
-        resultado = self.visit(ctx.getChild(0))  # Visita el primer factor
-
-        i = 1
-        while i < ctx.getChildCount():
-            if i+1 >= ctx.getChildCount():
-                print("+++ ERROR: Se intentó acceder a un hijo fuera de rango en visitTerm +++")
-                break  # Salimos del bucle si no hay suficientes hijos
-            
-            operador = ctx.getChild(i).getText()  # Puede ser "*" o "/"
-            siguiente_factor = self.visit(ctx.getChild(i+1))
-            
-            if siguiente_factor is None:
-                print(f"+++ ERROR: visitFactor devolvió None en visitTerm +++")
-                break
-
-            print(f"Operación: {resultado} {operador} {siguiente_factor}")
-            resultado = f"{resultado} {operador} {siguiente_factor}"
-
-            i += 2  # Saltar al siguiente operador
-
-        return resultado
     
     def visitFactor(self, ctx):
-        print("Entra a un factor")
-        
-        if ctx.getChildCount() == 1:  # Si el factor es un número o una variable
-            valor = ctx.getChild(0).getText()
-            print(f"Factor encontrado: {valor}")
-            return valor  # Devuelve el valor del número o variable
-
-        elif ctx.getChildCount() == 3:  # Si es una expresión entre paréntesis (expr)
-            return self.visit(ctx.getChild(1))  # Evalúa lo que hay dentro
-
-        print("+++ ERROR: No se pudo reconocer el factor +++")
-        return ""
+        texto = ctx.getText()
+        print(f"Factor encontrado: {texto}")
+        return texto 
             
 
-    def visitAsignacion(self, ctx: compiladoresParser.AsignacionContext):
-        nombreVariable = ctx.getChild(0).getText()
-        print(f'Asignando a la variable: "{nombreVariable}"\n')
-        resultado = self.visitOpal(ctx.getChild(2))
-        print("resultado = " + resultado)
-        self.file.write(f"{nombreVariable} = {resultado}\n")
+    def visitAsignacion(self, ctx):
+        id_variable = ctx.ID().getText()
+        print(f"Asignando a la variable: \"{id_variable}\"")
+
+        resultado = self.visit(ctx.expresion())
+
+        if resultado is None:
+            print("+++ ERROR: La expresión evaluada devolvió None +++")
+            resultado = ""  # evitamos crash
+        else:
+            print("resultado = " + resultado)
+
+        # Aquí podrías guardar o usar el resultado en el código intermedio
+        return resultado
 
 
    # def visitAsignacion(self, ctx: compiladoresParser.AsignacionContext):
