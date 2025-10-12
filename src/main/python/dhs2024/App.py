@@ -1,25 +1,30 @@
 import sys
-from Escucha import Escucha
 from antlr4 import *
-from compiladoresLexer  import compiladoresLexer
+from compiladoresLexer import compiladoresLexer
 from compiladoresParser import compiladoresParser
 from Visitor import Visitor
-
+from Walker import Walker
 
 def main(argv):
     archivo = "input/opal.txt"
-    if len(argv) > 1 :
+    if len(argv) > 1:
         archivo = argv[1]
-    input = FileStream(archivo) #se encarga de leer la entrada
-    lexer = compiladoresLexer(input) #genera tokens pidiendosele caracteres al archivo
-    stream = CommonTokenStream(lexer) 
-    parser = compiladoresParser(stream) #levanta tokens, es el que guia
-    escucha = Escucha() 
-    parser.addParseListener(escucha) 
+    
+    input = FileStream(archivo)
+    lexer = compiladoresLexer(input)
+    stream = CommonTokenStream(lexer)
+    parser = compiladoresParser(stream)
     tree = parser.programa()
-    # print(tree.toStringTree(recog=parser)) #esta linea impime el arbol 
-    caminante = Visitor()
-    caminante.visitPrograma(tree)
+    
+    # PRIMERO: Análisis semántico
+    print("=== ANÁLISIS SEMÁNTICO ===")
+    visitor = Visitor()
+    visitor.visitPrograma(tree)
+    
+    # SEGUNDO: Generación de código intermedio
+    print("\n=== GENERACIÓN CÓDIGO INTERMEDIO ===")
+    walker = Walker()
+    walker.visitPrograma(tree)
 
 if __name__ == '__main__':
     main(sys.argv)

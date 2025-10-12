@@ -1,4 +1,6 @@
 int main(){
-    int variable ; 
-    variable = 5 * 2;
+    int x ;
+    x = 5 * 2; 
+    int y ;
+    y = 5 + 2 ;
 }
