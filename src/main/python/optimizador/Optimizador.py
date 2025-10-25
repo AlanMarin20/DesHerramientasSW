@@ -1,6 +1,9 @@
 import re
 import os
 
+""" Optimizador de Código Intermedio
+Como el desarrollo del optimizador lo vamos a hacer de a poco, vamos a comentar bien
+todo para cuando volvamos a leer el codigo acordarnos que hicimos."""
 class Optimizador:
     def __init__(self, ruta_entrada="./input_codigo.txt"):
         self.ruta_entrada = ruta_entrada
@@ -117,35 +120,48 @@ class Optimizador:
         print("Líderes identificados:", lideres)
         return bloques
     
+
+
+    """    Optimización: Propagación de constantes
+    Reemplazamos variables que tienen valores constantes conocidos
+    EJEMPlo:
+    t1 = 5
+    t2 = t1 + 3  --> t2 = 5 + 3
+    """
     def propagacion_constantes(self):
         with open(self.ruta_salida, "r") as f:
-            lineas = f.readlines()
+            lineas = f.readlines() #Lee el codigo limpio generado previamente
 
-        optimizado = lineas.copy()
+        optimizado = lineas.copy() # Lista de strings donde cada string es una linea del codigo intermedio
 
-        for inicio, fin in self.bloques:
-            constantes = {}
-            for i in range(inicio, fin + 1):
-                partes = optimizado[i].split()
+        for inicio, fin in self.bloques: #Iteramos bloque por bloque
+            constantes = {} #Diccionario que almacena las variables que tienen valores constantes
+                            #Ej: {"t1": "5", "t2": "10"}
 
-                if len(partes) >= 3 and partes[1] == "=":
+            for i in range(inicio, fin + 1): #Iteramos linea por linea dentro del bloque
+
+
+                partes = optimizado[i].split() #Separamos la linea en tokens
+                # Si tenemos "t2 = t1 + 4" --> partes = ["t2", "=", "t1", "+", "4"]
+
+                if len(partes) >= 3 and partes[1] == "=": #Si hay una asignacion
                     izquierda = partes[0]
                     derecha = partes[2:]
 
-                    # reemplazar variables conocidas por su valor
+                    # Reemplaza variables por valores del diccionario
                     derecha = [constantes.get(tok, tok) for tok in derecha]
 
-                    # evaluar si es una expresión constante (solo números y operadores)
-                    expr = " ".join(derecha)
-                    if all(tok.isdigit() or tok in "+-*/%() " for tok in expr):
+                    
+                    expr = " ".join(derecha) # Juntamos la expresion nuevamente a string {"t1" + "4" --> "t1 + 4"}
+                    if all(tok.isdigit() or tok in "+-*/%() " for tok in expr): # Evalua si la expresion tiene solo numeros o letras tamb
                         try:
-                            valor = str(eval(expr))
-                            optimizado[i] = f"{izquierda} = {valor}\n"
-                            constantes[izquierda] = valor
+                            valor = str(eval(expr)) #Si la exp es numerica, la evalua en compilacion
+                            optimizado[i] = f"{izquierda} = {valor}\n" #Reemplaza la linea por la optimizada
+                            constantes[izquierda] = valor #Agrega al diccionario
                         except:
                             pass
                     else:
-                        optimizado[i] = f"{izquierda} = {' '.join(derecha)}\n"
+                        optimizado[i] = f"{izquierda} = {' '.join(derecha)}\n" # Si hay letras no evalua, solo reemplaza
         
         with open("./CodigoIntermedioOptimizado.txt", "w") as f:
             f.writelines(optimizado)
