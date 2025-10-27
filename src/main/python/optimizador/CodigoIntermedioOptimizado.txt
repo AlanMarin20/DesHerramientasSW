@@ -1,8 +1,11 @@
 t1 = 10
 ifntjmp t1 < 20 l1
+
 t2 = t1 * 2
 jump l2
+
 label l1
 t3 = t1 + 10
+
 label l2
 t4 = t3 * 2

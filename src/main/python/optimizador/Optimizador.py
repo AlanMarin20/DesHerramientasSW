@@ -166,3 +166,36 @@ class Optimizador:
         with open("./CodigoIntermedioOptimizado.txt", "w") as f:
             f.writelines(optimizado)
 
+
+    """ Reutiliza resultados de expresiones ya hechas dentro el mismo bloque
+    EJEMPLO:
+    t1 = a + b
+    t2 = a + b  --> t2 = t1 
+            """
+    def exp_comunes(self):
+        with open(self.ruta_salida, "r") as f:
+                lineas = f.readlines()
+
+        optimizado = lineas.copy()
+
+        # Recorremos bloque por bloque
+        for inicio, fin in self.bloques:
+            expresiones = {}  # diccionario de expresiones vistas en el bloque
+                    # Ej: {"a + b": "t1",...}
+            expresiones_redef = []
+
+            for i in range(inicio, fin + 1): # recorremos linea por linea dentro del bloque
+                partes = optimizado[i].split() #Separamos la linea en tokens
+                # Si tenemos "t2 = t1 + 4" --> partes = ["t2", "=", "t1", "+", "4"]
+
+                # Si es una asignacion binaria
+                if len(partes) == 5 and partes[1] == "=" and partes[3] in "+-*/":
+                    izquierda = partes[0]
+                    opizq =  partes[2]
+                    op =  partes[3]
+                    opder = partes[4]
+                    expresion = f"{opizq} {op} {opder}"
+
+
+        
+

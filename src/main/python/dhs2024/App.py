@@ -4,7 +4,7 @@ from compiladoresLexer import compiladoresLexer
 from compiladoresParser import compiladoresParser
 from Visitor import Visitor
 from Walker import Walker
-from Optimizador import Optimizador
+from DesHerramientasSW.src.main.python.optimizador.Optimizador import Optimizador
 
 def main(argv):
     archivo = "input/opal.txt"
@@ -28,9 +28,9 @@ def main(argv):
     walker.visitPrograma(tree)
 
     # TERCERO: Optimización de código
-    opt = Optimizador()
-    opt.acomodar_entrada()
-    opt.generar_bloques()
+    #opt = Optimizador()
+    #opt.acomodar_entrada()
+    #opt.generar_bloques()
  
 if __name__ == '__main__':
     main(sys.argv)

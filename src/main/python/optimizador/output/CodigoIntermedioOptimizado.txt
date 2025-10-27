@@ -1,13 +1,13 @@
 t1 = a + b
 t2 = c * d
-t3 = a + b
+t3 = t1
 e = t2 + 5
 a = a + 1
 t4 = a + b
-f = c * d
+f = t2
 t2 = 3
 t5 = e + f
-t6 = e + f
+t6 = t5
 jump l1
 label l1
 t7 = t1 + t2
