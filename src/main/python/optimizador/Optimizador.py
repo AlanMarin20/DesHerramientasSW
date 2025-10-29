@@ -195,6 +195,14 @@ class Optimizador:
                     op =  partes[3]
                     opder = partes[4]
                     expresion = f"{opizq} {op} {opder}"
+                    # Verificamos si la variable izquierda fue redefinida
+                    redefinidas = [expr for expr in expresiones if izquierda in expr.split()]
+                    # Recorre las expresiones y busca si la variable izquierda aparece en alguna
+                    if redefinidas:
+                        print(f"[Línea {i}] Variable {izquierda} fue redefinida. Invalidando expresiones: {redefinidas}")
+                        for expr in redefinidas:
+                            if expr in expresiones:
+                                del expresiones[expr]
 
 
         

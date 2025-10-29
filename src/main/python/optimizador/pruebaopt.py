@@ -5,4 +5,4 @@ if __name__ == "__main__":
     opt.acomodar_entrada()
     opt.generar_bloques()
     opt.propagacion_constantes()
-    opt.exp_comunes()
+    #opt.exp_comunes()
