@@ -204,6 +204,20 @@ class Optimizador:
                             if expr in expresiones:
                                 del expresiones[expr]
 
+                    # Si la expresion esta en el diccionario, la reutilizamos
+                    if expresion in expresiones:
+                        anterior = expresiones[expresion] #Agarramos la variable que ya tenia esa expresion
+                        optimizado[i] = f"{izquierda} = {anterior}\n" #Reemplazamos la linea
+                        print(f"  [Línea {i}] Reutilizando expresión común: {expresion} → {anterior}")
+                    else: #Si no esta, es nueva entonces la guardamos
+                        expresiones[expresion] = izquierda
+                        print(f"  [Línea {i}] Nueva expresión: {expresion} → {izquierda}")
+
+        # Guardamos resultado optimizado
+        with open("./output/CodigoIntermedioOptimizado.txt", "w") as f:
+            f.writelines(optimizado)
+
+        print("Optimización de expresiones comunes completada.")
 
         
 

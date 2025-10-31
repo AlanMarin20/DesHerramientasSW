@@ -10,7 +10,6 @@ t5 = e + f
 t6 = e + f
 jump l1
 label l1
-t7 = t1 + t2
 t8 = a + b
 a = a + 1
 t9 = a + b
