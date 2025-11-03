@@ -1,4 +1,65 @@
-956
-Hola
-tx_2v  5
-@fd
+int calcularFactorial(int n);
+int esPrimo(int numero);
+
+int main() {
+    int numero;
+    numero = 7;
+    
+    int factorial;
+    factorial = calcularFactorial(numero);
+    
+    int primo;
+    primo = esPrimo(numero);
+    
+    int resultado;
+    resultado = 0;
+    
+    if (primo == 1) {
+        resultado = factorial * 2;
+    } else {
+        resultado = factorial / 2;
+    }
+    
+    int i;
+    int suma;
+    suma = 0;
+    
+    for (i = 1; i <= 10; i = i + 1) {
+        if (i % 2 == 0) {
+            suma = suma + i;
+        } else {
+            suma = suma - i;
+        }
+    }
+    
+    resultado = resultado + suma;
+    
+    return resultado;
+}
+
+int calcularFactorial(int n) {
+    int fact;
+    fact = 1;
+    int j;
+    
+    for (j = 1; j <= n; j = j + 1) {
+        fact = fact * j;
+    }
+    
+    return fact;
+}
+
+int esPrimo(int num) {
+    if (num <= 1) {
+        return 0;
+    }
+    
+    int k;
+    for (k = 2; k * k <= num; k = k + 1) {
+        if (num % k == 0) {
+            return 0;
+        }
+    }
+    
+    return 1;
+}

@@ -3,8 +3,9 @@ int funcion (int a, int b);
 int main () {
     int x;
     int y; 
-
-    y = funcion(x , 6);
+    x = 2;
+    
+    y = funcion(5 , 6);
     
     while(y > 0){
         y = y -1;

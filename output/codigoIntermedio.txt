@@ -1,4 +1,71 @@
-t1 = 5 * 2
-x = t1
-t2 = 5 + 2
-y = t2
+
+main:
+numero = 0
+numero = 7
+factorial = 0
+vf0 = numero
+t1 = call calcularFactorial
+factorial = t1
+primo = 0
+vf0 = numero
+t2 = call esPrimo
+primo = t2
+resultado = 0
+resultado = 0
+t3 = primo == 1
+siFalso t3 ir a L1
+t4 = factorial * 2
+resultado = t4
+L1:
+i = 0
+suma = 0
+suma = 0
+L2:
+t5 = i <= 10
+siFalso t5 ir a L3
+t6 = i % 2
+t7 = t6 == 0
+siFalso t7 ir a L4
+t8 = suma + i
+suma = t8
+L4:
+t9 = i + 1
+i = t9
+ir a L2
+L3:
+t10 = resultado + suma
+resultado = t10
+
+calcularFactorial:
+fact = 0
+fact = 1
+j = 0
+L5:
+t11 = j <= n
+siFalso t11 ir a L6
+t12 = fact * j
+fact = t12
+t13 = j + 1
+j = t13
+ir a L5
+L6:
+retornar
+
+esPrimo:
+t14 = num <= 1
+siFalso t14 ir a L7
+L7:
+k = 0
+L8:
+t15 = k * k
+t16 = t15 <= num
+siFalso t16 ir a L9
+t17 = num % k
+t18 = t17 == 0
+siFalso t18 ir a L10
+L10:
+t19 = k + 1
+k = t19
+ir a L8
+L9:
+retornar
