@@ -1,0 +1,14 @@
+t1 = 8
+t2 = 16
+ifntjmp t2 < 20 l1
+t3 = t2 - 4
+jump l2
+label l1
+t4 = t2 + 10
+ifntjmp t4 > 50 l3
+t5 = t4 * 2
+jump l2
+label l3
+t6 = 0
+label l2
+t7 = t5 + 1
