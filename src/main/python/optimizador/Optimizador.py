@@ -219,5 +219,50 @@ class Optimizador:
 
         print("Optimización de expresiones comunes completada.")
 
+    """ Elimina instrucciones que no afectanal reesultado final del programa
+    EJEMPLO:
+    t1 = c + d
+    No se usa mas t1, por lo tanto no tiene efecto en el resultado, es CODGIO MUERTO  
+            """
+    
+    def eliminar_codigo_muerto(self):
+        with open(self.ruta_salida, "r") as f:
+            lineas = f.readlines()
+
+        optimizado = lineas.copy()
+
+        for inicio, fin in reversed(self.bloques):  # Recorremos los bloques de abajo hacia arriba
+            usadas = set() # Es un conjunto que se construye a medida que recorremos de abajo hacia ariba
+            nuevo_bloque = []
         
+            # RECORRE BLOQUE DE ABAJO HACIA ARRIBA
+            for i in range(final, inicio, -1, -1):
+                # por ej si teneemos t2 = t1 + 3
+
+                partes = optimizado[i].split()
+                # partes = ["t2", "=", "t1", "+", "3"]
+                
+                #SI ES UNA ASIGNACION
+                if len(partes) >= 3 and partes[1] == "=":
+                    izquierda = partes[0]
+                    derecha = partes[2:]
+
+                    # VARIABLES QUE SE USAN EN ESTA LINEA 
+                    # var_usadas va a tener ["t1"]
+                    var_usadas = [ tok for tok in derecha if tok.isidentifier() and not tok.isdigit()]
+
+                    if izquierda not in usadas:
+                        #SI NO SE USA LA VARIABLE LA ELIMINAMOS
+
+                        print(f"  [Línea {i}] Eliminada: codigo muerto: {optimizado[i].strip()}")
+                        opotimizado[i] = f"// eliminado: {optimizado[i]}"
+                    
+                    else:
+                        #SI SE USA, SE MANTIENE Y ACTUALIZAMOS VARIABLES USADAS
+
+                        usadas.discard(izquierda)  
+                        usadas.update(var_usadas)
+                        print(f"  [Línea {i}] Mantiene {izquierda}, usa {var_usadas}")
+
+                        
 
