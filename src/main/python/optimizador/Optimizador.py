@@ -56,70 +56,121 @@ class Optimizador:
             print("ERROR")
             return
         
-        bloques = []
-        lideres = set()
+        
+        n = len(lineas)
+        self.funciones = {}           # nombre -> (ini, fin)
+        self.bloques_por_funcion = {} # nombre -> lista de [ini, fin]
+        bloques_flat = []
 
-        # REALIZAMOS ESTO POR REGLAS
+        #DEFINIMOS CABECERAS DE FUNCIONES Y LABELS
+        func_heads = []     # ("main", 0)
+        labels_pos = {}     # 'L1' -> 0
 
-        # Regla 1: La primera instrucción es un lider
-        if lineas:
-            lideres.add(0)
-
-        # Primera pasada: identificar todos los labels y sus posiciones
-        label_positions = {}
-        for i, linea in enumerate(lineas):
-            tokens = linea.split()
-            if tokens and tokens[0] == "label" and len(tokens) > 1:
-                label_name = tokens[1]
-                label_positions[label_name] = i    
-
-        # Regla 2 y 3: label y saltos
-        for i, linea in enumerate(lineas):
-            tokens = linea.strip().split()
-            if not tokens:
+        # RECORRE TODAS LAS LINEAS BUSCANDO FUNCIONES Y LABELS
+        for idx, linea in enumerate(lineas):
+            tok = linea.strip().split()
+            if not tok:
                 continue
-            op = tokens[0]
 
-            if op == "label":
-                lideres.add(i)
+            #Cabecera que termina con : y NO empieza con L es una funcion
+            if tok[0].endswith(':') and not tok[0].startswith('L'):
+                func_name = tok[0][:-1]
+                func_heads.append((func_name, idx))
 
-            if op in ("jump", "ifntjmp"):
-                if i + 1 < len(lineas):
-                    lideres.add(i + 1)
-            
-                # Buscamos el destino del salto
-                if len(tokens) > 1:
-                    target_label = tokens[-1] 
-                    if target_label in label_positions:
-                        lideres.add(label_positions[target_label])
+            #Label de control
+            elif tok[0].startswith('L') and tok[0].endswith(':'):
+                labels_pos[tok[0][:-1]] = idx
 
-        lideres = sorted(lideres)
+        # Si no hay funciones, asumimos que es todo un main ponele
+        if not func_heads:
+            func_heads = [("main", 0)]
 
-           # CONSTRUIMOS BLOQES
-        for idx in range(len(lideres)):
-            inicio = lideres[idx]
-        
-            if idx + 1 < len(lideres):
-                fin = lideres[idx + 1] - 1
-            else:
-                fin = len(lineas) - 1
-        
-            if inicio <= fin:
-                bloques.append([inicio, fin])
 
-        self.bloques = bloques
+        # HASTA AHORA DEFINIMOS FUNCIONES Y LABELS, AHORA DELIMITAMOS INICIO Y FIN DE CADA FUNCION
 
-        print("Bloques Detectados:")
-        for idx, (ini, fin) in enumerate(bloques):
-            print(f"  Bloque {idx + 1}: líneas {ini}–{fin}")
-            for l in lineas[ini:fin + 1]:
-                print("    ", l.strip())
-            print()
-        # DEBUG
-        print("Labels encontrados:", label_positions)
-        print("Líderes identificados:", lideres)
-        return bloques
-    
+        for i, (func_name, func_start) in enumerate(func_heads):
+            #Usamos como criterio, el incio es la cabecera y el fin es retornar o nombre de ota funcion
+            # El fin es una linea antes del inicio de la sig funcion, en caso de ser la ultima, la ultima linea es el final.
+            func_end = (func_heads[i+1][1] - 1) if (i+1 < len(func_heads)) else (n - 1)
+
+            # buscamos retornar dentro de la funcion,
+            for j in range(func_start, func_end + 1):
+                tok = lineas[j].strip().split()
+                if tok and tok[0] == "retornar":
+                    func_end = j
+                    break
+
+            self.funciones[func_name] = (func_start, func_end)
+
+        # PARA CADA FUNCION, CONSTRUIMOS BLOQUES BASICOS
+        for fname, (iniF, finF) in self.funciones.items():
+            lideres = set()
+
+            # La PRIMERA instrucción dentro del cuerpo es lider
+            first_lider = iniF + 1
+            if first_lider <= finF:
+                lideres.add(first_lider)
+
+            # Cualquier label dentro de la funcion es lider
+            for L, pos in labels_pos.items():
+                if iniF <= pos <= finF:
+                    lideres.add(pos)
+
+            # Despues de cada salto, la siguiente instruccion es lider
+            for i in range(iniF, finF + 1):
+                tok = lineas[i].strip().split()
+                if not tok:
+                    continue
+
+                # Usamos nomenclatura siFalso
+                if tok[0] == "siFalso":
+                    if i + 1 <= finF:
+                        lideres.add(i + 1)
+                    dest = tok[-1]
+                    if dest in labels_pos:
+                        lideres.add(labels_pos[dest])
+
+                #Usamos nomenclatura ir
+                elif tok[0] == "ir" and len(tok) >= 3 and tok[1] == "a":
+                    if i + 1 <= finF:
+                        lideres.add(i + 1)
+                    dest = tok[-1]
+                    if dest in labels_pos:
+                        lideres.add(labels_pos[dest])
+
+            # ORDENAMOS LOS LIDERES Y CREAMOS BLOQUES 
+            lideres = sorted(lideres)
+            bloques_fun = []
+            for k in range(len(lideres)):
+                b_ini = lideres[k]
+                b_fin = (lideres[k+1] - 1) if (k+1 < len(lideres)) else finF
+                if b_ini <= b_fin:
+                    bloques_fun.append([b_ini, b_fin])
+                    bloques_flat.append([b_ini, b_fin])
+
+            self.bloques_por_funcion[fname] = bloques_fun
+
+                
+        self.bloques = bloques_flat
+
+        #DEBUGEAMOS
+        print("\n=== DETECCIÓN DE FUNCIONES Y BLOQUES ===")
+        print("Funciones detectadas y rangos (lineas):")
+        for fn, (a, b) in self.funciones.items():
+            print(f"  - {fn}: {a}..{b}")
+
+        print("\nLabels encontrados:")
+        for L, pos in labels_pos.items():
+            print(f"  - {L}: {pos}")
+
+        print("\nBloques por funciOn:")
+        for fn, bls in self.bloques_por_funcion.items():
+            print(f"  {fn}:")
+            for (a, b) in bls:
+                frag = " | ".join(s.strip() for s in lineas[a:b+1])
+                print(f"    [{a}-{b}]  {frag}")
+
+        return self.bloques
 
 
     """    Optimización: Propagación de constantes
@@ -224,45 +275,47 @@ class Optimizador:
     t1 = c + d
     No se usa mas t1, por lo tanto no tiene efecto en el resultado, es CODGIO MUERTO  
             """
-    
     def eliminar_codigo_muerto(self):
+        # Leer el archivo de entrada
         with open(self.ruta_salida, "r") as f:
-            lineas = f.readlines()
-
-        optimizado = lineas.copy()
-
-        for inicio, fin in reversed(self.bloques):  # Recorremos los bloques de abajo hacia arriba
-            usadas = set() # Es un conjunto que se construye a medida que recorremos de abajo hacia ariba
-            nuevo_bloque = []
+            src = f.readlines()
         
-            # RECORRE BLOQUE DE ABAJO HACIA ARRIBA
-            for i in range(final, inicio, -1, -1):
-                # por ej si teneemos t2 = t1 + 3
+        # Crear archivo de destino
+        with open("./output/CodigoIntermedioOptimizado.txt", "w") as destino:
+            definidas = set()
+            usadas = set()
+            optimizado = src.copy()
 
-                partes = optimizado[i].split()
-                # partes = ["t2", "=", "t1", "+", "3"]
+            for bloquen in self.bloques:
+                inicio, fin = bloquen
+                i = inicio
+
+                while i <= fin:
+                    linea = optimizado[i].split()
+                    if len(linea) >= 3 and linea[1] == '=':
+                        definidas.add(linea[0]) #miro el lado izquierdo y agrego a definidas
+                        #ahora miramos el lado derecho para ver que variables estan siendo usadas
+                        usadas.update([linea[j] for j in range(2, len(linea)) if linea[j].isidentifier()])
+                    i += 1
                 
-                #SI ES UNA ASIGNACION
-                if len(partes) >= 3 and partes[1] == "=":
-                    izquierda = partes[0]
-                    derecha = partes[2:]
+                #vemos variables que no se esten usando
+                innecesarias = definidas - usadas
+                i = inicio
+                while i <= fin:
+                    partes = optimizado[i].split()
+                    if len(partes) >= 3 and partes[1] == '=' and partes[0] in innecesarias:
+                        # En lugar de eliminar, comentar la línea
+                        print(f"  [Línea {i}] Eliminada: código muerto: {optimizado[i].strip()}")
+                        optimizado[i] = f"// eliminado: {optimizado[i]}"
+                    i += 1
 
-                    # VARIABLES QUE SE USAN EN ESTA LINEA 
-                    # var_usadas va a tener ["t1"]
-                    var_usadas = [ tok for tok in derecha if tok.isidentifier() and not tok.isdigit()]
-
-                    if izquierda not in usadas:
-                        #SI NO SE USA LA VARIABLE LA ELIMINAMOS
-
-                        print(f"  [Línea {i}] Eliminada: codigo muerto: {optimizado[i].strip()}")
-                        opotimizado[i] = f"// eliminado: {optimizado[i]}"
-                    
-                    else:
-                        #SI SE USA, SE MANTIENE Y ACTUALIZAMOS VARIABLES USADAS
-
-                        usadas.discard(izquierda)  
-                        usadas.update(var_usadas)
-                        print(f"  [Línea {i}] Mantiene {izquierda}, usa {var_usadas}")
-
-                        
-
+            destino.seek(0)
+            destino.truncate() #para escribir el archivo de cero
+            for linea in optimizado:
+                if linea == "":
+                    continue  # saltar línea vacía
+                if not linea.endswith('\n'):
+                    linea += '\n'
+                destino.write(linea)
+        
+        print("Eliminación de código muerto completada.")
