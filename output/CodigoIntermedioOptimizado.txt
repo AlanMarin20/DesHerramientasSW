@@ -1,6 +1,11 @@
 main:
-t1 = 5 + 3
-t2 = t1 * 2
-t3 = t2 - 4
-t4 = t3 * 2
-retornar
+base = 100
+offset = 1
+// eliminado: t1 = 101
+// eliminado: t2 = 101
+x = variableExterna
+t3 = x * 101
+// eliminado: t4 = t3
+// eliminado: tDead = t4
+// eliminado: tDead = 0
+retornar t3

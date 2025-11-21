@@ -8,7 +8,9 @@ class Optimizador:
     def __init__(self, ruta_entrada="./input_codigo.txt"):
         self.ruta_entrada = ruta_entrada
         self.ruta_salida = "./output/archivoTemporalOptimizador.txt"
+        self.ruta_optimizada = "./output/CodigoIntermedioOptimizado.txt" # Unifiqué la salida aquí
         self.bloques = []
+        self.lineas_actuales = [] # <--- NUEVO: Aquí guardamos el código en memoria para pasarlo entre funciones
         os.makedirs("./output", exist_ok=True)
 
 
@@ -42,6 +44,9 @@ class Optimizador:
             nueva = ' '.join(nueva.split())  # quita espacios dobles
             lineas_con_espacios.append(nueva + '\n')
 
+        # CAMBIO: Guardamos en disco Y en memoria para que siga el flujo
+        self.lineas_actuales = lineas_con_espacios 
+        
         with open(self.ruta_salida, "w") as f:
             f.writelines(lineas_con_espacios)
 
@@ -49,13 +54,18 @@ class Optimizador:
 
     def generar_bloques(self):
         # aca detectamos bloques basicos en el codigo intermedio limpio
-        try:
-            with open(self.ruta_salida, "r") as f:
-                lineas = f.readlines()
-        except FileNotFoundError:
-            print("ERROR")
-            return
         
+        # CAMBIO: Usamos lo que está en memoria en vez de leer archivo
+        if not self.lineas_actuales:
+            # Por si acaso alguien llama a generar_bloques sin llamar a acomodar antes
+            try:
+                with open(self.ruta_salida, "r") as f:
+                    self.lineas_actuales = f.readlines()
+            except FileNotFoundError:
+                print("ERROR: No hay código cargado")
+                return
+
+        lineas = self.lineas_actuales 
         
         n = len(lineas)
         self.funciones = {}           # nombre -> (ini, fin)
@@ -155,6 +165,7 @@ class Optimizador:
 
         #DEBUGEAMOS
         print("\n=== DETECCIÓN DE FUNCIONES Y BLOQUES ===")
+        # (Dejé tus prints tal cual)
         print("Funciones detectadas y rangos (lineas):")
         for fn, (a, b) in self.funciones.items():
             print(f"  - {fn}: {a}..{b}")
@@ -180,18 +191,14 @@ class Optimizador:
     t2 = t1 + 3  --> t2 = 5 + 3
     """
     def propagacion_constantes(self):
-        with open(self.ruta_salida, "r") as f:
-            lineas = f.readlines() #Lee el codigo limpio generado previamente
-
-        optimizado = lineas.copy() # Lista de strings donde cada string es una linea del codigo intermedio
+        # CAMBIO: Usamos self.lineas_actuales en vez de leer archivo
+        optimizado = self.lineas_actuales.copy()
 
         for inicio, fin in self.bloques: #Iteramos bloque por bloque
             constantes = {} #Diccionario que almacena las variables que tienen valores constantes
                             #Ej: {"t1": "5", "t2": "10"}
 
             for i in range(inicio, fin + 1): #Iteramos linea por linea dentro del bloque
-
-
                 partes = optimizado[i].split() #Separamos la linea en tokens
                 # Si tenemos "t2 = t1 + 4" --> partes = ["t2", "=", "t1", "+", "4"]
 
@@ -200,21 +207,64 @@ class Optimizador:
                     derecha = partes[2:]
 
                     # Reemplaza variables por valores del diccionario
-                    derecha = [constantes.get(tok, tok) for tok in derecha]
+                    derecha_nueva = [str(constantes.get(tok, tok)) for tok in derecha]
 
+
+                    expr = " ".join(derecha_nueva) # Juntamos la expresion nuevamente a string {"t1" + "4" --> "t1 + 4"}
                     
-                    expr = " ".join(derecha) # Juntamos la expresion nuevamente a string {"t1" + "4" --> "t1 + 4"}
-                    if all(tok.isdigit() or tok in "+-*/%() " for tok in expr): # Evalua si la expresion tiene solo numeros o letras tamb
+                    valor_calculado = None
+
+                    # Valudamos caracteres permitidos 
+                    #Validamos caracteres permitidos para evaluar
+                    caracteres_permitidos = set("0123456789.+-*/%() =<>!")
+                    es_seguro = set(expr).issubset(caracteres_permitidos)
+
+                    if es_seguro:
                         try:
-                            valor = str(eval(expr)) #Si la exp es numerica, la evalua en compilacion
-                            optimizado[i] = f"{izquierda} = {valor}\n" #Reemplaza la linea por la optimizada
-                            constantes[izquierda] = valor #Agrega al diccionario
+                            # eval resuelve la cuenta matemática
+                            valor_calculado = str(eval(expr)) 
                         except:
-                            pass
+                            # Puede fallar por división por cero, sintaxis, etc.
+                            valor_calculado = None
+                    
+                    if valor_calculado is not None:
+                        # Se pudo reducir una constante
+                        optimizado[i] = f"{izquierda} = {valor_calculado}\n"
+                        constantes[izquierda] = valor_calculado
+                    
                     else:
-                        optimizado[i] = f"{izquierda} = {' '.join(derecha)}\n" # Si hay letras no evalua, solo reemplaza
+                        # No se pudo reducir
+                        optimizado[i] = f"{izquierda} = {expr}\n"
+
+                        #Si la variable izquierda se redefinio, debemos sacar el valor antiguo
+
+                        if izquierda in constantes:
+                            del constantes[izquierda]
+                        
+                    
+        # Guardamos cambios
+        self.lineas_actuales = optimizado       
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    #if all(tok.isdigit() or tok in "+-*/%() " for tok in expr): # Evalua si la expresion tiene solo numeros o letras tamb
+                     #   try:
+                      #      valor = str(eval(expr)) #Si la exp es numerica, la evalua en compilacion
+                       #     optimizado[i] = f"{izquierda} = {valor}\n" #Reemplaza la linea por la optimizada
+                        #    constantes[izquierda] = valor #Agrega al diccionario
+                        #except:
+                        #    pass
+                    #else:
+                     #   optimizado[i] = f"{izquierda} = {' '.join(derecha)}\n" # Si hay letras no evalua, solo reemplaza
         
-        with open("./CodigoIntermedioOptimizado.txt", "w") as f:
+        # CAMBIO: Actualizamos la memoria Y escribimos el archivo
+        #self.lineas_actuales = optimizado
+        
+        with open(self.ruta_optimizada, "w") as f:
             f.writelines(optimizado)
 
 
@@ -224,98 +274,135 @@ class Optimizador:
     t2 = a + b  --> t2 = t1 
             """
     def exp_comunes(self):
-        with open(self.ruta_salida, "r") as f:
-                lineas = f.readlines()
+            print(">>> Ejecutando Expresiones Comunes (Conmutativo)...")
+            optimizado = self.lineas_actuales.copy()
 
-        optimizado = lineas.copy()
+            for inicio, fin in self.bloques:
+                expresiones = {}  # Diccionario: {"a + b": "t1"}
+                
+                for i in range(inicio, fin + 1):
+                    partes = optimizado[i].split()
+                    
+                    # Antes de procesar, borramos del diccionario lo que se rompe en esta linea
+                    if len(partes) >= 3 and partes[1] == "=":
+                        izquierda = partes[0] 
+                        
+                        #Si cambio una variable usada en una ya existente (Ej a = 99 rompe "a + b")
+                        claves_a_borrar = [k for k in expresiones if izquierda in k.split()]
+                        for k in claves_a_borrar:
+                            del expresiones[k]
+                            
+                        #Si piso la variable que guardaba el resultado (Ej t1 = 0 rompe {"a+b": "t1"})
+                        claves_por_valor = [k for k, v in expresiones.items() if v == izquierda]
+                        for k in claves_por_valor:
+                            del expresiones[k]
 
-        # Recorremos bloque por bloque
-        for inicio, fin in self.bloques:
-            expresiones = {}  # diccionario de expresiones vistas en el bloque
-                    # Ej: {"a + b": "t1",...}
-            expresiones_redef = []
+                    if len(partes) == 5 and partes[1] == "=" and partes[3] in "+-*/%":
+                        izquierda = partes[0]
+                        op1 = partes[2]
+                        op = partes[3]
+                        op2 = partes[4]
+                        
+                        expr_original = f"{op1} {op} {op2}"
+                        expr_conmutativa = f"{op2} {op} {op1}" # El push anterior no tenia en cuenta esto
+                        
+                        encontrada = None
+                        
+                        #Buscamos coincidencia exacta
+                        if expr_original in expresiones:
+                            encontrada = expresiones[expr_original]
+                            
+                        #Buscamos coincidencia conmutativa (Solo para + y *)
+                        elif op in "+*" and expr_conmutativa in expresiones:
+                            encontrada = expresiones[expr_conmutativa]
+                            print(f"  [Smart] Conmutatividad detectada: {expr_original} es igual a {expr_conmutativa}")
 
-            for i in range(inicio, fin + 1): # recorremos linea por linea dentro del bloque
-                partes = optimizado[i].split() #Separamos la linea en tokens
-                # Si tenemos "t2 = t1 + 4" --> partes = ["t2", "=", "t1", "+", "4"]
+                        if encontrada:
+                            #optimizamos
+                            optimizado[i] = f"{izquierda} = {encontrada}\n"
+                            # Actualizamos el diccionario
+                            expresiones[expr_original] = izquierda
+                        else:
+                            # guardamos la nueva expresion
+                            expresiones[expr_original] = izquierda
 
-                # Si es una asignacion binaria
-                if len(partes) == 5 and partes[1] == "=" and partes[3] in "+-*/":
-                    izquierda = partes[0]
-                    opizq =  partes[2]
-                    op =  partes[3]
-                    opder = partes[4]
-                    expresion = f"{opizq} {op} {opder}"
-                    # Verificamos si la variable izquierda fue redefinida
-                    redefinidas = [expr for expr in expresiones if izquierda in expr.split()]
-                    # Recorre las expresiones y busca si la variable izquierda aparece en alguna
-                    if redefinidas:
-                        print(f"[Línea {i}] Variable {izquierda} fue redefinida. Invalidando expresiones: {redefinidas}")
-                        for expr in redefinidas:
-                            if expr in expresiones:
-                                del expresiones[expr]
+            # Guardamos cambios
+            self.lineas_actuales = optimizado
+            
+            with open(self.ruta_optimizada, "w") as f:
+                f.writelines(optimizado)
 
-                    # Si la expresion esta en el diccionario, la reutilizamos
-                    if expresion in expresiones:
-                        anterior = expresiones[expresion] #Agarramos la variable que ya tenia esa expresion
-                        optimizado[i] = f"{izquierda} = {anterior}\n" #Reemplazamos la linea
-                        print(f"  [Línea {i}] Reutilizando expresión común: {expresion} → {anterior}")
-                    else: #Si no esta, es nueva entonces la guardamos
-                        expresiones[expresion] = izquierda
-                        print(f"  [Línea {i}] Nueva expresión: {expresion} → {izquierda}")
-
-        # Guardamos resultado optimizado
-        with open("./output/CodigoIntermedioOptimizado.txt", "w") as f:
-            f.writelines(optimizado)
-
-        print("Optimización de expresiones comunes completada.")
-
-    """ Elimina instrucciones que no afectanal reesultado final del programa
-    EJEMPLO:
-    t1 = c + d
-    No se usa mas t1, por lo tanto no tiene efecto en el resultado, es CODGIO MUERTO  
-            """
+    #La logica es recorrer hacia atras porque asi sabemos que variables
+    # van a ser usadas en el futuro y cuales no
     def eliminar_codigo_muerto(self):
-        # Leer el archivo de entrada
-        with open(self.ruta_salida, "r") as f:
-            src = f.readlines()
-        
-        # Crear archivo de destino
-        with open("./output/CodigoIntermedioOptimizado.txt", "w") as destino:
-            definidas = set()
-            usadas = set()
+            print("CODIGO MUERTO")
+            src = self.lineas_actuales.copy()
             optimizado = src.copy()
+
+            # Palabras clave que NO son variables (para evitar agregarlas a variables_vivas)
+            keywords = ["ir", "a", "goto", "if", "siFalso", "call", "retornar", "label", "+", "-", "*", "/", "=", "==", "<", ">", "<=", ">="]
 
             for bloquen in self.bloques:
                 inicio, fin = bloquen
-                i = inicio
-
-                while i <= fin:
-                    linea = optimizado[i].split()
-                    if len(linea) >= 3 and linea[1] == '=':
-                        definidas.add(linea[0]) #miro el lado izquierdo y agrego a definidas
-                        #ahora miramos el lado derecho para ver que variables estan siendo usadas
-                        usadas.update([linea[j] for j in range(2, len(linea)) if linea[j].isidentifier()])
-                    i += 1
                 
-                #vemos variables que no se esten usando
-                innecesarias = definidas - usadas
-                i = inicio
-                while i <= fin:
-                    partes = optimizado[i].split()
-                    if len(partes) >= 3 and partes[1] == '=' and partes[0] in innecesarias:
-                        # En lugar de eliminar, comentar la línea
-                        print(f"  [Línea {i}] Eliminada: código muerto: {optimizado[i].strip()}")
-                        optimizado[i] = f"// eliminado: {optimizado[i]}"
-                    i += 1
+                # Variables que necesitaremos en el futuro
+                # Al final del bloque, asumimos que las temporales (t...) mueren, 
+                # pero las de usuario (a, b, x...) pueden estar vivas en otro bloque.
+                # Por seguridad, empezamos vacío y protegemos las NO temporales al momento de borrar.
+                variables_vivas = set()
 
-            destino.seek(0)
-            destino.truncate() #para escribir el archivo de cero
-            for linea in optimizado:
-                if linea == "":
-                    continue  # saltar línea vacía
-                if not linea.endswith('\n'):
-                    linea += '\n'
-                destino.write(linea)
-        
-        print("Eliminación de código muerto completada.")
+                # RECORREMOS DE ATRAS PARA ADELANTE 
+                for i in range(fin, inicio - 1, -1):
+                    linea = optimizado[i].strip()
+                    
+                    # Ignorar comentarios o lineas vacías
+                    if not linea or linea.startswith("//") or linea.endswith(":"):
+                        continue
+
+                    partes = linea.split()
+
+                    # primer caso: asignaciones
+                    if len(partes) >= 3 and partes[1] == "=":
+                        izquierda = partes[0]
+                        derecha = partes[2:]
+
+                        # CRITERIO
+                        # 1. La variable izquierda NO esta en 'variables_vivas' (nadie la necesita abajo)
+                        # 2. Es una variable temporal 
+                        es_temporal = izquierda.startswith("t") or izquierda.startswith("vf") or izquierda.startswith("aux")
+
+                        if es_temporal and izquierda not in variables_vivas:
+                            # La borramos 
+                            optimizado[i] = f"// eliminado: {linea}\n"
+                        else:
+                            # no borramos
+                            # 1. Como se define aca, 'izquierda' ya no se necesita hacia arriba.
+                            if izquierda in variables_vivas:
+                                variables_vivas.remove(izquierda)
+                            
+                            # 2. Las variables de la derecha las necesitamos, son vivqs
+                            for tok in derecha:
+                                if tok.isidentifier() and tok not in keywords and not tok[0].isdigit():
+                                    variables_vivas.add(tok)
+
+                    # segundo caso: instrucciones de control
+                    # Ej siFalso t1 ir a L1  o  retornar x  o  push t1
+                    else:
+                        # Cualq variable que aparezca aca es viva
+                        for tok in partes:
+                            if tok.isidentifier() and tok not in keywords:
+                                # Chequeo extra que dio error antes, porque a veces venian numeros
+                                try:
+                                    float(tok) # Si es numero, lo ignoramos
+                                except ValueError:
+                                    variables_vivas.add(tok)
+
+            # Guardamos resultado
+            self.lineas_actuales = optimizado
+            
+            with open(self.ruta_optimizada, "w") as destino:
+                for linea in optimizado:
+                    if linea.strip() == "": continue 
+                    destino.write(linea)
+            
+            print("Eliminacion de código muerto completada.")

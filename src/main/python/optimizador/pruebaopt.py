@@ -2,7 +2,7 @@ from Optimizador import Optimizador
 
 if __name__ == "__main__":
     # Creamos instancia del optimizador
-    opt = Optimizador("./input_codigo.txt")   # Asegurate de tener este archivo en la raíz del proyecto
+    opt = Optimizador("src/main/python/optimizador/input_codigo.txt")   # Asegurate de tener este archivo en la raíz del proyecto
 
     # Paso 1: Acomodar (limpiar) la entrada
     opt.acomodar_entrada()
@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     # Paso 5: Eliminación de código muerto
     #print("\n=== ELIMINACIÓN DE CÓDIGO MUERTO ===")
-    #opt.eliminar_codigo_muerto()
+    opt.eliminar_codigo_muerto()
 
     print("\n=== OPTIMIZACIÓN FINALIZADA ===")
     print("Archivos generados en ./output/")
