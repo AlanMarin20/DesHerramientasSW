@@ -178,7 +178,7 @@ class Visitor(compiladoresVisitor):
         self.visit(ctx.bloque())
         
         # Salir del contexto de la función
-        self.tablaDeSimbolos.delContexto()
+        self.tablaDeSimbolos.delContexto() 
 
     def visitParFunc(self, ctx):
         # Procesar parámetros de función: int x, int y
@@ -220,6 +220,7 @@ class Visitor(compiladoresVisitor):
         
         return None
 
+
     # Métodos para reglas que no requieren lógica especial
     def visitPartesumaresta(self, ctx):
         return self.visitChildren(ctx)
@@ -238,4 +239,5 @@ class Visitor(compiladoresVisitor):
 
     def visitParteor(self, ctx):
         return self.visitChildren(ctx)
+    
 

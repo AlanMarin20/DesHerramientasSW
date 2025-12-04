@@ -4,7 +4,7 @@ from compiladoresLexer import compiladoresLexer
 from compiladoresParser import compiladoresParser
 from Visitor import Visitor
 from Walker import Walker
-from DesHerramientasSW.src.main.python.optimizador.Optimizador import Optimizador
+from main.python.optimizador.Optimizador import Optimizador
 
 def main(argv):
     archivo = "input/entrada.txt"
@@ -16,7 +16,12 @@ def main(argv):
     stream = CommonTokenStream(lexer)
     parser = compiladoresParser(stream)
     tree = parser.programa()
-    
+
+    if parser.getNumberOfSyntaxErrors() > 0:
+        print("Error de sintaxis detectado")
+        print("Compilación cancelada - No se generó código")
+        return
+
     # PRIMERO: Análisis semántico
     print("=== ANÁLISIS SEMÁNTICO ===")
     visitor = Visitor()

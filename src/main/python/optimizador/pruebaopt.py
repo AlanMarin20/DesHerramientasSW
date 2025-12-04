@@ -1,4 +1,4 @@
-from Optimizador import Optimizador
+from main.python.optimizador.Optimizador import Optimizador
 
 if __name__ == "__main__":
     # Creamos instancia del optimizador
