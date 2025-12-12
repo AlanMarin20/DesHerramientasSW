@@ -3,7 +3,7 @@ from compiladoresParser import compiladoresParser
 from antlr4.tree.Tree import TerminalNodeImpl
 
 class Walker (compiladoresVisitor):
-    #---- Generador de código intermedio ----
+    #---- Generador de codigo intermedio ----
 
     contadorTemporales = 0
     contadorEtiquetas = 0
@@ -19,12 +19,12 @@ class Walker (compiladoresVisitor):
             self.archivoCodigoIntermedio.close()
 
     def getTemporal(self):
-        # Genera nombres únicos para variables temporales: t1, t2, t3...
+        # Genera nombres para variables temporales: t1, t2, t3...
         self.contadorTemporales += 1
         return f"t{self.contadorTemporales}"
     
     def getEtiqueta(self):
-        # Genera nombres únicos para etiquetas: L1, L2, L3... estas etiquetas se usan para saltos
+        # Genera nombres para etiquetas: L1, L2, L3... estas etiquetas se usan para saltos
         self.contadorEtiquetas += 1
         return f"L{self.contadorEtiquetas}"
     
@@ -46,18 +46,31 @@ class Walker (compiladoresVisitor):
 
     def visitFuncion(self, ctx):
         prototipo = ctx.prototSpyc()
-        nombre_funcion = prototipo.getChild(1).getText()
+        nombreFuncion = prototipo.getChild(1).getText()
+        # Guardamos contexto actual
+        self.funcion_actual = nombreFuncion
+        # Escribimos la etiqueta de la función
+        self.archivoCodigoIntermedio.write(f"\n{nombreFuncion}:\n")
+
+        nombresArgumentos = [] #Esta es la pila de parametros que usa la funcion (int a,etc)
         
-        # NUEVO: Guardamos el contexto actual
-        self.funcion_actual = nombre_funcion
-        
-        # Escribe el encabezado
-        self.archivoCodigoIntermedio.write(f"\n{nombre_funcion}:\n")
-        
-        # Procesa el cuerpo
+        # Verificamos si tiene la regla parFunc (parametros definidos)
+        if prototipo.parFunc():
+            pf = prototipo.parFunc()
+            
+            # Recorremos todos los hijos de parFunc buscando los que sean IDs
+            for i in range(pf.getChildCount()):
+                child = pf.getChild(i)
+                # Verificamos si el token es un ID (usando el tipo de simbolo de ANTLR)
+                if hasattr(child, 'getSymbol') and child.getSymbol().type == compiladoresParser.ID:
+                    nombresArgumentos.append(child.getText())
+
+        # Primero sacamos param2, despues param1.
+        for arg in reversed(nombresArgumentos):
+           self.archivoCodigoIntermedio.write(f"pop {arg}\n")
+        # Procesamos el cuerpo de la función
         self.visit(ctx.bloque())
-        
-        # (Opcional) Limpiar la variable al salir, por seguridad
+        # Limpiamos contexto al salir
         self.funcion_actual = ""
 
     def visitBloque(self, ctx):
@@ -82,29 +95,34 @@ class Walker (compiladoresVisitor):
                     self.archivoCodigoIntermedio.write(f"{variable} = {resultado}\n")
 
     def visitCallFunction(self, ctx):
-        # Procesa llamada a función: funcion(param1, param2)
-        nombre_funcion = ctx.getChild(0).getText()
-        # Recolecta parámetros del prototipo
+
+        nombreFuncion = ctx.getChild(0).getText()
+        # Recolectamos los valores de los parámetros en una lista
         parametros = []
         env_par = ctx.envPar()
+        
+        # Verificamos si hay parámetros (envPar tiene opales)
         if env_par and env_par.opal():
+            # Primer parámetro
             param1 = self.visitOperacionSimple(env_par.opal())
             parametros.append(param1)
-            # Procesa parámetros internos de la funcion
+            
+            # Resto de parámetros (lista_envPar)
             lista_env = env_par.lista_envPar()
             while lista_env and lista_env.opal():
                 param_extra = self.visitOperacionSimple(lista_env.opal())
                 parametros.append(param_extra)
                 lista_env = lista_env.lista_envPar()
-        # Pasa parámetros usando variables vf0, vf1, vf2... (variable funcion)
-        for i, param in enumerate(parametros):
-            vf_name = f"vf{i}"
-            self.archivoCodigoIntermedio.write(f"{vf_name} = {param}\n")
-        # Genera llamada y almacena resultado
-        temporal_resultado = self.getTemporal()
-        self.archivoCodigoIntermedio.write(f"{temporal_resultado} = call {nombre_funcion}\n")
         
-        return temporal_resultado
+        # Generamos los PUSH
+        for param in parametros:
+           self.archivoCodigoIntermedio.write(f"push {param}\n")
+        
+        # Generamos la llamada (CALL)
+        temporalResultado = self.getTemporal()
+        self.archivoCodigoIntermedio.write(f"{temporalResultado} = call {nombreFuncion}\n")
+        
+        return temporalResultado
 
     def visitDeclAsig(self, ctx: compiladoresParser.DeclAsigContext):
         # Procesa declaración con asignación: int x = valor
@@ -130,19 +148,20 @@ class Walker (compiladoresVisitor):
         pass
 
     def visitIwhile(self, ctx):
-        # Procesa while(condicion) {...}
         etiqueta_inicio = self.getEtiqueta()
         etiqueta_fin = self.getEtiqueta()
-        # Etiqueta de inicio del bucle
+
         self.archivoCodigoIntermedio.write(f"{etiqueta_inicio}:\n")
-        # Procesa condición
-        if ctx.cond():
-            condicion_result = self.visitOperacionSimple(ctx.cond().opal())
+
+        if ctx.opal():
+            condicion_result = self.visit(ctx.opal())
+            
             if condicion_result:
                 self.archivoCodigoIntermedio.write(f"siFalso {condicion_result} ir a {etiqueta_fin}\n")
-        # Procesa cuerpo del bucle
-        self.visit(ctx.bloque())
-        # Salto al inicio y etiqueta de fin
+            
+        if ctx.instruccion():
+            self.visit(ctx.instruccion())
+
         self.archivoCodigoIntermedio.write(f"ir a {etiqueta_inicio}\n")
         self.archivoCodigoIntermedio.write(f"{etiqueta_fin}:\n")
 
@@ -150,107 +169,70 @@ class Walker (compiladoresVisitor):
         etiqueta_else = self.getEtiqueta()
         etiqueta_fin = self.getEtiqueta()
         
-        # 1. Condición
         condicion_result = self.visitOperacionSimple(ctx.opal())
         
-        # 2. Detectar si hay ELSE
-        tiene_else = False
-        indice_else = -1
-        # Buscamos en los hijos si existe la palabra 'else'
-        for i in range(ctx.getChildCount()):
-            if ctx.getChild(i).getText() == 'else':
-                tiene_else = True
-                indice_else = i
-                break
-        
-        # 3. Salto condicional
-        # Si hay else, saltamos a la etiqueta ELSE. Si no, al FIN.
+        # Detectar si hay ELSE
+        nodo_ielse = ctx.ielse()
+        tiene_else = nodo_ielse is not None
+
         destino_falso = etiqueta_else if tiene_else else etiqueta_fin
         
-        if condicion_result:
-            self.archivoCodigoIntermedio.write(f"siFalso {condicion_result} ir a {destino_falso}\n")
+        self.archivoCodigoIntermedio.write(f"siFalso {condicion_result} ir a {destino_falso}\n")
             
-        # 4. Cuerpo del IF (Bloque True) - Generalmente es el hijo 4
-        # (Después de 'if', '(', 'cond', ')')
-        self.visit(ctx.getChild(4))
+        # Visitamos el cuerpo del if
+        self.visit(ctx.instruccion())
         
-        # 5. Lógica del ELSE
         if tiene_else:
-            # Al terminar el IF, saltamos al FIN para no ejecutar el ELSE
+            # Al terminar el IF, debemos saltar al FIN 
+            # para no "caer" en el código del else.
             self.archivoCodigoIntermedio.write(f"ir a {etiqueta_fin}\n")
             
-            # Etiqueta de inicio del ELSE
+            # Etiqueta donde comienza el else
             self.archivoCodigoIntermedio.write(f"{etiqueta_else}:\n")
             
-            # Cuerpo del ELSE (El hijo siguiente a la palabra 'else')
-            self.visit(ctx.getChild(indice_else + 1))
+            # Visitamos el cuerpo del else
+            self.visit(nodo_ielse.instruccion())
             
-        # 6. Etiqueta de fin
         self.archivoCodigoIntermedio.write(f"{etiqueta_fin}:\n")
 
     def visitIfor(self, ctx):
-        # Estructura típica: for ( init ; cond ; iter ) { bloque }
         etiqueta_inicio = self.getEtiqueta()
         etiqueta_fin = self.getEtiqueta()
         
-        # 1. INICIALIZACIÓN (Hijo 2) -> "i = 1"
-        if ctx.getChildCount() > 2:
-            nodo_init = ctx.getChild(2)
-            # Verificamos si es una asignación simple (ID = VAL) para escribirla directo
-            if nodo_init.getChildCount() >= 3:
-                var = nodo_init.getChild(0).getText()
-                val = self.visitOperacionSimple(nodo_init.getChild(2))
-                self.archivoCodigoIntermedio.write(f"{var} = {val}\n")
-            else:
-                self.visit(nodo_init)
+        if ctx.init():
+            self.visit(ctx.init()) 
 
         self.archivoCodigoIntermedio.write(f"{etiqueta_inicio}:\n")
+
+        if ctx.cond():
+            condicion_result = self.visit(ctx.cond())
+            if condicion_result:
+                self.archivoCodigoIntermedio.write(f"siFalso {condicion_result} ir a {etiqueta_fin}\n")
         
-        # 2. CONDICIÓN (Hijo 4) -> "i <= 10"
-        if ctx.getChildCount() > 4:
-            cond_ctx = ctx.getChild(4)
-            # Manejo robusto para obtener el valor de la condición
-            if hasattr(cond_ctx, 'opal'):
-                res = self.visitOperacionSimple(cond_ctx.opal())
-            else:
-                res = self.visitOperacionSimple(cond_ctx)
-                
-            if res:
-                self.archivoCodigoIntermedio.write(f"siFalso {res} ir a {etiqueta_fin}\n")
-        
-        # 3. CUERPO DEL BUCLE (Hijo 8)
-        if ctx.getChildCount() > 8:
-            self.visit(ctx.getChild(8))
+        # Cuerpo del for
+        if ctx.instruccion():
+            self.visit(ctx.instruccion())
             
-        # 4. ITERACIÓN (Hijo 6) -> "i = i + 1"
-        if ctx.getChildCount() > 6:
-            nodo_iter = ctx.getChild(6)
-            # Mismo truco que en init: escribimos directo
-            if nodo_iter.getChildCount() >= 3:
-                var = nodo_iter.getChild(0).getText()
-                val = self.visitOperacionSimple(nodo_iter.getChild(2))
-                self.archivoCodigoIntermedio.write(f"{var} = {val}\n")
-            else:
-                self.visit(nodo_iter)
+        if ctx.iter_():       
+            self.visit(ctx.iter_()) 
         
-        # 5. SALTO Y ETIQUETA FIN
         self.archivoCodigoIntermedio.write(f"ir a {etiqueta_inicio}\n")
         self.archivoCodigoIntermedio.write(f"{etiqueta_fin}:\n")
 
     def visitInit(self, ctx):
-        # Procesa inicialización de for
-        return self.visitChildren(ctx)
+        variable = ctx.ID().getText()
+        valor = ctx.NUMERO().getText()
+        
+        self.archivoCodigoIntermedio.write(f"{variable} = {valor}\n")
+        return None
 
     def visitIter(self, ctx):
-        # Procesa iteración de for
         return self.visitChildren(ctx)
 
     def visitCond(self, ctx):
-        # Procesa condición de bucle/condicional
         return self.visitOperacionSimple(ctx.opal())
 
     def visitIreturn(self, ctx):
-        # Estructura: return EXPRESION ;
         # Si tiene hijos (además de la palabra 'return')
             # Visitamos el hijo 1 que contiene la expresión
             if self.funcion_actual == "main":
@@ -262,91 +244,120 @@ class Walker (compiladoresVisitor):
             else:
             # Si no tiene expresión, solo return
                 self.archivoCodigoIntermedio.write("retornar\n")
-    #---- Metodos de Procesamiento de Operaciones ----
 
     def visitOperacionSimple(self, ctx):
-        # Metodo para todas las operaciones
+        # Delega la tarea a (Opal, Exp, Term, etc.)
         if ctx is None:
             return "0"
-        # Operaciones simples
-        if hasattr(ctx, 'NUMERO') and ctx.NUMERO():
-            return ctx.NUMERO().getText()
-        elif hasattr(ctx, 'ID') and ctx.ID():
-            return ctx.ID().getText()
-        # Operaciones complejas
-        return self.procesarOperacionIterativa(ctx)
+        return self.visit(ctx)
 
-    def procesarOperacionIterativa(self, ctx):
-        # Procesador iterativo de operaciones
-        if ctx is None:
-            return "0"
-        texto = ctx.getText()
-        # Comparaciones (x > 0, y == 5, etc.)
-        if any(op in texto for op in ['>', '<', '>=', '<=', '==', '!=']):
-            for op in ['>=', '<=', '==', '!=', '>', '<']:
-                if op in texto:
-                    partes = texto.split(op)
-                    if len(partes) == 2:
-                        izquierda = self.procesarSubOperacion(partes[0].strip())
-                        derecha = self.procesarSubOperacion(partes[1].strip())
-                        temporal = self.getTemporal()
-                        self.archivoCodigoIntermedio.write(f"{temporal} = {izquierda} {op} {derecha}\n")
-                        return temporal
-        
-        # Operaciones Aritmeticas (x + 1, y * 2, etc.)
-        for op in ['+', '-', '*', '/', '%']:
-            if op in texto:
-                partes = texto.split(op)
-                if len(partes) == 2:
-                    izquierda = self.procesarSubOperacion(partes[0].strip())
-                    derecha = self.procesarSubOperacion(partes[1].strip())
-                    temporal = self.getTemporal()
-                    self.archivoCodigoIntermedio.write(f"{temporal} = {izquierda} {op} {derecha}\n")
-                    return temporal
-    
-        # Entre Parentesis
-        if texto.startswith('(') and texto.endswith(')'):
-            return self.visitOperacionSimple(ctx.getChild(1) if ctx.getChildCount() > 1 else None)
-        
-        # Valor
-        return texto
-
-    def procesarSubOperacion(self, operacion):
-        # Procesa y descompone operaciones complejas
-        for op in ['*', '/', '%', '+', '-']:
-            if op in operacion:
-                partes = operacion.split(op)
-                if len(partes) == 2:
-                    izquierda = partes[0].strip()
-                    derecha = partes[1].strip()
-                    temporal = self.getTemporal()
-                    self.archivoCodigoIntermedio.write(f"{temporal} = {izquierda} {op} {derecha}\n")
-                    return temporal
-        # Si no hay operaciones, retornar la operacion tal cual
-        return operacion
-
-    #---- Metodos para de "paso" ----
     def visitOpal(self, ctx):
-        return self.visitOperacionSimple(ctx)
+        # Solo pasa el control a la regla de abajo ('or')
+        return self.visit(ctx.or_()) 
+
     def visitOr(self, ctx):
-        return self.visitOperacionSimple(ctx)
+        # Obtener el primer valor (hijo izquierdo)
+        resultado = self.visit(ctx.getChild(0)) # Visitamos 'and'
+
+        i = 1
+        while i < ctx.getChildCount():
+            operador = ctx.getChild(i).getText()
+            siguiente_nodo = ctx.getChild(i+1)   
+            siguiente_val = self.visit(siguiente_nodo)
+
+            nuevo_temporal = self.getTemporal()
+            self.archivoCodigoIntermedio.write(f"{nuevo_temporal} = {resultado} {operador} {siguiente_val}\n")
+            
+            resultado = nuevo_temporal
+            i += 2 # Saltamos el operador y el operando
+            
+        return resultado
+
     def visitAnd(self, ctx):
-        return self.visitOperacionSimple(ctx)
+
+        resultado = self.visit(ctx.getChild(0)) 
+
+        i = 1
+        while i < ctx.getChildCount():
+            operador = ctx.getChild(i).getText() 
+            siguiente_nodo = ctx.getChild(i+1)  
+            siguiente_val = self.visit(siguiente_nodo)
+
+            nuevo_temporal = self.getTemporal()
+            self.archivoCodigoIntermedio.write(f"{nuevo_temporal} = {resultado} {operador} {siguiente_val}\n")
+            
+            resultado = nuevo_temporal
+            i += 2
+            
+        return resultado
+
     def visitComp(self, ctx):
-        return self.visitOperacionSimple(ctx)
+        
+        izq = self.visit(ctx.exp(0)) 
+
+        # Si hay más de 1 hijo (exp operador exp), entonces hay comparación
+        if ctx.getChildCount() > 1:
+            operador = ctx.getChild(1).getText() 
+            der = self.visit(ctx.exp(1))         
+            
+            temporal = self.getTemporal()
+            self.archivoCodigoIntermedio.write(f"{temporal} = {izq} {operador} {der}\n")
+            return temporal
+            
+        # Si no hubo comparación, devolvemos solo la expresión
+        return izq
+
     def visitExp(self, ctx):
-        return self.visitOperacionSimple(ctx)
+        resultado = self.visit(ctx.getChild(0)) 
+        i = 1
+        while i < ctx.getChildCount():
+            operador = ctx.getChild(i).getText()       
+            siguiente_nodo = ctx.getChild(i+1)         
+            siguiente_val = self.visit(siguiente_nodo)
+            
+            # Generamos t...
+            nuevo_temporal = self.getTemporal()
+            self.archivoCodigoIntermedio.write(f"{nuevo_temporal} = {resultado} {operador} {siguiente_val}\n")
+            
+            # El resultado acumulado ahora es este temporal
+            resultado = nuevo_temporal
+            
+            i += 2
+            
+        return resultado
+
     def visitTerm(self, ctx):
-        return self.visitOperacionSimple(ctx)
+        resultado = self.visit(ctx.getChild(0)) 
+
+        i = 1
+        while i < ctx.getChildCount():
+            operador = ctx.getChild(i).getText()
+            siguiente_nodo = ctx.getChild(i+1)
+            siguiente_val = self.visit(siguiente_nodo)
+            
+            nuevo_temporal = self.getTemporal()
+            self.archivoCodigoIntermedio.write(f"{nuevo_temporal} = {resultado} {operador} {siguiente_val}\n")
+            
+            resultado = nuevo_temporal
+            i += 2
+            
+        return resultado
+
     def visitFactor(self, ctx):
-        return self.visitOperacionSimple(ctx)
-    def visitC(self, ctx):
+        # Paréntesis (PA exp PC)
+        # Si tiene 3 hijos y el primero es '(', visitamos la expresión del medio
+        if ctx.getChildCount() == 3 and ctx.PA():
+            return self.visit(ctx.exp())
+
+        # Numero o Variable
         return ctx.getText()
+    
     def visitChildren(self, ctx):
         # Método para procesar hijos de un nodo
         if ctx.getChildCount() > 0:
             return self.visit(ctx.getChild(0))
         return None
+    
     def visitPrototipoFuncion(self, ctx):
         # Procesa prototipos de función 
         pass

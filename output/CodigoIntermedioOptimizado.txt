@@ -1,17 +1,47 @@
 main:
-x = 0
-i = 10
-z = 3
-// eliminado: t1 = 6
-l = 6
-// eliminado: t2 = 6
-o = 6
+numero = 7
+num = 2
+push numero
+t1 = call calcularFactorial
+factorial = t1
+push num
+t2 = call esPrimo
+primo = t2
+resultado = 0
+t3 = factorial + suma
+resultado = t3
+calcularFactorial:
+pop n
+fact = 1
+j = 1
 L1:
-siFalso i > 0&&x > 10 ir a L2
-// eliminado: t3 = 4
-t4 = i + 4
-x = t4
-t5 = i - 1
-i = t5
+t4 = j <= n
+siFalso t4 ir a L2
+t5 = fact * j
+fact = t5
+t6 = j + 1
+j = t6
 ir a L1
 L2:
+retornar fact
+esPrimo:
+pop num
+t7 = num <= 1
+siFalso t7 ir a L4
+retornar 0
+L4:
+k = 2
+L5:
+t8 = k * k
+t9 = t8 <= num
+siFalso t9 ir a L6
+t10 = num % k
+t11 = t10 == 0
+siFalso t11 ir a L8
+retornar 0
+L8:
+t12 = k + 1
+k = t12
+ir a L5
+L6:
+retornar 1

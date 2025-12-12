@@ -34,7 +34,7 @@ int main() {
     
     resultado = resultado + suma;
     
-    return resultado;
+    return;
 }
 
 int calcularFactorial(int n) {

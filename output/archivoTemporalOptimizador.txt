@@ -1,30 +1,47 @@
 main:
-<<<<<<< HEAD
-x = 0
-i = 10
-z = 3
-t1 = 3 + z
-l = t1
-t2 = 3 + z
-o = t2
+numero = 7
+num = 2
+push numero
+t1 = call calcularFactorial
+factorial = t1
+push num
+t2 = call esPrimo
+primo = t2
+resultado = 0
+t3 = factorial + suma
+resultado = t3
+calcularFactorial:
+pop n
+fact = 1
+j = 1
 L1:
-siFalso i > 0&&x > 10 ir a L2
-t3 = (5 * 2) - 6
-t4 = i + t3
-x = t4
-t5 = i - 1
-i = t5
+t4 = j <= n
+siFalso t4 ir a L2
+t5 = fact * j
+fact = t5
+t6 = j + 1
+j = t6
 ir a L1
 L2:
-=======
-base = 100
-offset = 1
-t1 = base + offset
-t2 = 100 + 1
-x = variableExterna
-t3 = x * t1
-t4 = x * 101
-tDead = x * t1
-tDead = 0
-retornar t3
->>>>>>> b2d12d3c0b811f65cf859970a5c0c116d8b643b1
+retornar fact
+esPrimo:
+pop num
+t7 = num <= 1
+siFalso t7 ir a L4
+retornar 0
+L4:
+k = 2
+L5:
+t8 = k * k
+t9 = t8 <= num
+siFalso t9 ir a L6
+t10 = num % k
+t11 = t10 == 0
+siFalso t11 ir a L8
+retornar 0
+L8:
+t12 = k + 1
+k = t12
+ir a L5
+L6:
+retornar 1

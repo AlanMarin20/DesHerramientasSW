@@ -28,6 +28,7 @@ MAYOREQ : '>=';
 MENOREQ : '<=';
 MENOR : '<';
 IGUAL : '==';
+DIFERENTE : '!=';
 AND : '&&';
 ANDsim : '&'; 
 OR : '||';
@@ -149,32 +150,15 @@ asignacion: ID ASIG opal
 
 opal: or;  //completar una operacion aridmeticas, buscar en cppreference, agregamoss operaciones relacionales
 
-or : and o ;
+or : and (OR and)* ;
 
-o : OR and o 
-    |
-    ;
+and : comp (AND comp)* ;
 
-and : comp a ;
+comp : exp ((MAYOR | MENOR | MENOREQ | MAYOREQ | IGUAL | DIFERENTE) exp)? ;
 
-a : AND comp a 
-   |
-   ;
+exp : term ((SUMA | RESTA)term)* ; //e es una expresion prima
 
-comp: exp c;
-
-c : MAYOR exp c
-  | MENOR exp c
-  | MENOREQ exp c
-  | MAYOREQ exp c
-  | IGUAL exp c
-  |
-  ;
-  
-exp : term ((SUMA | RESTA)factor)* ; //e es una expresion prima
-
-term : factor ((MULT | DIV | MOD)factor)*
-      |factor ((SUMA | RESTA)factor)*;
+term : factor ((MULT | DIV | MOD)factor)*;
 
 // e : SUMA term e // a partir del segundo termino
 //   | RESTA term e
@@ -187,14 +171,13 @@ factor : NUMERO  //parentesis es factor
       // | LETRA+
       ;
 
-//iwhile : WHILE PA ID PC instruccion ;//llave es instruccion compuesta, despues del while una instruccion
-  iwhile : WHILE PA cond PC bloque ;
+iwhile : WHILE PA opal PC instruccion ;
 
 bloque : LLA instrucciones LLC; 
 
 //for :
-ifor : FOR PA init PYC cond PYC iter PC bloque //Cambie instruccion por bloque y tambien en if y else
-    //  | FOR PA declAsig PYC cond PYC iter PC bloque 
+ifor : FOR PA init PYC cond PYC iter PC instruccion
+    //  | FOR PA declAsig PYC cond PYC iter PC instruccion 
      ;
 
 init : ID ASIG NUMERO ;
@@ -210,9 +193,7 @@ decremento : ID DECR
 //fin for
 
 //if
-iif : IF PA opal PC bloque 
-    | IF PA opal PC instruccion
+iif : IF PA opal PC instruccion ielse
+      | IF PA opal PC instruccion
     ; 
-ielse : ELSE bloque 
-      | ELSE instruccion
-      ;        //y tambien los modifique donde se los usaba
+ielse : ELSE instruccion;       

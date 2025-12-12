@@ -1,90 +1,50 @@
 
 main:
-<<<<<<< HEAD
-x = 0
-i = 10
-z = 3
-t1 = 3 + z
-l = t1
-t2 = 3 + z
-o = t2
-L1:
-siFalso i>0&&x>10 ir a L2
-t3 = (5 * 2)-6
-t4 = i + t3
-x = t4
-t5 = i - 1
-i = t5
-ir a L1
-L2:
-=======
-numero = 0
 numero = 7
-factorial = 0
-vf0 = numero
+num = 2
+push numero
 t1 = call calcularFactorial
 factorial = t1
-primo = 0
-vf0 = numero
+push num
 t2 = call esPrimo
 primo = t2
 resultado = 0
-resultado = 0
-t3 = primo == 1
-siFalso t3 ir a L1
-t4 = factorial * 2
-resultado = t4
-L1:
-i = 0
-suma = 0
-suma = 0
-L2:
-t5 = i <= 10
-siFalso t5 ir a L3
-t6 = i % 2
-t7 = t6 == 0
-siFalso t7 ir a L4
-t8 = suma + i
-suma = t8
-L4:
-t9 = i + 1
-i = t9
-ir a L2
-L3:
-t10 = resultado + suma
-resultado = t10
+t3 = factorial + suma
+resultado = t3
 
 calcularFactorial:
-fact = 0
+pop n
 fact = 1
-j = 0
-L5:
-t11 = j <= n
-siFalso t11 ir a L6
-t12 = fact * j
-fact = t12
-t13 = j + 1
-j = t13
-ir a L5
-L6:
-retornar
+j = 1
+L1:
+t4 = j <= n
+siFalso t4 ir a L2
+t5 = fact * j
+fact = t5
+t6 = j + 1
+j = t6
+ir a L1
+L2:
+retornar fact
 
 esPrimo:
-t14 = num <= 1
-siFalso t14 ir a L7
-L7:
-k = 0
+pop num
+t7 = num <= 1
+siFalso t7 ir a L4
+retornar 0
+L4:
+k = 2
+L5:
+t8 = k * k
+t9 = t8 <= num
+siFalso t9 ir a L6
+t10 = num % k
+t11 = t10 == 0
+siFalso t11 ir a L8
+retornar 0
 L8:
-t15 = k * k
-t16 = t15 <= num
-siFalso t16 ir a L9
-t17 = num % k
-t18 = t17 == 0
-siFalso t18 ir a L10
-L10:
-t19 = k + 1
-k = t19
-ir a L8
-L9:
-retornar
->>>>>>> b2d12d3c0b811f65cf859970a5c0c116d8b643b1
+t12 = k + 1
+k = t12
+ir a L5
+L6:
+retornar 1
