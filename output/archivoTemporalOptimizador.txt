@@ -1,85 +1,17 @@
 main:
-numero = 0
-t1 = base + offset
-numero = t1
-factorial = 0
-vf0 = numero
-t2 = call calcularFactorial
-factorial = t2
-primo = 0
-vf0 = numero
-t3 = call esPrimo
-primo = t3
-resultado = 0
-resultado = 0
-t4 = primo == 1
-siFalso t4 ir a L2
-t5 = factorial * 2
-resultado = t5
-espejo = 0
-t6 = 2 * factorial
-espejo = t6
+x = 0
+i = 10
+z = 3
+t1 = 3 + z
+l = t1
+t2 = 3 + z
+o = t2
+L1:
+siFalso i > 0&&x > 10 ir a L2
+t3 = (5 * 2) - 6
+t4 = i + t3
+x = t4
+t5 = i - 1
+i = t5
+ir a L1
 L2:
-i = 0
-suma = 0
-suma = 0
-i = 1
-L3:
-t7 = i <= 10
-siFalso t7 ir a L4
-resto = 0
-t8 = i % 2
-resto = t8
-t9 = resto == 0
-siFalso t9 ir a L6
-aux = 0
-t10 = i % 2
-aux = t10
-t11 = suma + i
-suma = t11
-L6:
-t12 = i + 1
-i = t12
-ir a L3
-L4:
-t13 = resultado + suma
-resultado = t13
-calcularFactorial:
-fact = 0
-fact = 1
-j = 0
-limite = 0
-t14 = n + 0
-limite = t14
-j = 1
-L7:
-t15 = j <= limite
-siFalso t15 ir a L8
-t16 = fact * j
-fact = t16
-t17 = j + 1
-j = t17
-ir a L7
-L8:
-retornar fact
-esPrimo:
-t18 = num <= 1
-siFalso t18 ir a L10
-retornar 0
-L10:
-k = 0
-k = 2
-L11:
-t19 = k * k
-t20 = t19 <= num
-siFalso t20 ir a L12
-t21 = num % k
-t22 = t21 == 0
-siFalso t22 ir a L14
-retornar 0
-L14:
-t23 = k + 1
-k = t23
-ir a L11
-L12:
-retornar 1
