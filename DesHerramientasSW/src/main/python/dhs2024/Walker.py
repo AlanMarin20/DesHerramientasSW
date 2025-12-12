@@ -125,21 +125,24 @@ class Walker (compiladoresVisitor):
         return temporalResultado
 
     def visitDeclAsig(self, ctx: compiladoresParser.DeclAsigContext):
-        # Procesa declaración con asignación: int x = valor
+        # Obtenemos los nombres de las variables usando declaracion (int x)
         if ctx.declaracion():
-            for i in range(1, ctx.declaracion().getChildCount()):
+            # Iteramos buscando los IDs dentro de la declaración
+            for i in range(ctx.declaracion().getChildCount()):
                 child = ctx.declaracion().getChild(i)
-                if hasattr(child, 'symbol') and child.symbol.type == compiladoresParser.ID:
+                
+                # Verificamos si es un ID
+                if hasattr(child, 'getSymbol') and child.getSymbol().type == compiladoresParser.ID:
                     variable = child.getText()
-                    # Si hay asignación, procesa la operacion
-                    opales = ctx.opal()
-                    if opales is not None:
-                        resultado = self.visitOperacionSimple(ctx.opal())
-                        if resultado:
-                            self.archivoCodigoIntermedio.write(f"{variable} = {resultado}\n")
-                    else:
-                        # Inicializa con 0 por defecto
-                        self.archivoCodigoIntermedio.write(f"{variable} = 0\n")
+                    # 2. Buscamos el valor a asignar (el OPAL)
+                    lista_opales = ctx.opal()
+                    
+                    # Existe al menos un opal (int x = 10;)
+                    if lista_opales and len(lista_opales) > 0:
+                        nodo_opal = lista_opales[0]
+                        
+                        resultado = self.visitOperacionSimple(nodo_opal)
+                        self.archivoCodigoIntermedio.write(f"{variable} = {resultado}\n")
                     break
 
     def visitDeclaracion(self, ctx):

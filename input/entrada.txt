@@ -2,9 +2,9 @@ int calcularFactorial(int n);
 int esPrimo(int numero);
 
 int main() {
-    int numero, num;
+    int numero;
     numero = 7;
-    num = 2;
+    int num = 2;
     
     int factorial;
     factorial = calcularFactorial(numero);
@@ -17,7 +17,7 @@ int main() {
     
     resultado = factorial + suma;
     
-    return;
+    return resultado;
 }
 
 int calcularFactorial(int n) {
