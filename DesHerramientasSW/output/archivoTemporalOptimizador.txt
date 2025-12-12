@@ -1,0 +1,11 @@
+main:
+base = 100
+offset = 1
+t1 = base + offset
+t2 = 100 + 1
+x = variableExterna
+t3 = x * t1
+t4 = x * 101
+tDead = x * t1
+tDead = 0
+retornar t3
