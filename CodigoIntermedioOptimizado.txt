@@ -1,0 +1,6 @@
+main:
+t1 = 8
+t2 = 16
+t3 = 12
+t4 = 24
+retornar

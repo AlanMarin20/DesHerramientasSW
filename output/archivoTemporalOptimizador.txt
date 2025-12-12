@@ -1,4 +1,5 @@
 main:
+<<<<<<< HEAD
 x = 0
 i = 10
 z = 3
@@ -15,3 +16,15 @@ t5 = i - 1
 i = t5
 ir a L1
 L2:
+=======
+base = 100
+offset = 1
+t1 = base + offset
+t2 = 100 + 1
+x = variableExterna
+t3 = x * t1
+t4 = x * 101
+tDead = x * t1
+tDead = 0
+retornar t3
+>>>>>>> b2d12d3c0b811f65cf859970a5c0c116d8b643b1
